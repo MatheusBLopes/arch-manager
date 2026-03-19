@@ -87,6 +87,11 @@ A interface usa **tema escuro (dark mode)** por padrão, via Bootstrap 5.3:
 - **Tipos**: Lambda, SQS, SNS, RDS, DynamoDB, Redis, API Gateway, API Route, Internal API, External API, Other
 - **Relacionamentos**: vincular recursos (ex.: fila SQS invoca Lambda)
 - **Documentação**: editar conteúdo em Markdown na página de detalhes do recurso
+- **Recursos tipo banco (RDS, DynamoDB)**:
+  - **Tabelas**: cadastro de tabelas existentes no banco
+  - **Campos**: nome, tipo de dados, PK, nullable, descrição por campo
+  - **Relacionamentos**: vínculos entre tabelas (um-para-um, um-para-muitos, etc.)
+  - **Queries úteis**: SQL com descrição explicativa de quando usar
 
 ## URLs Principais
 
@@ -98,6 +103,9 @@ A interface usa **tema escuro (dark mode)** por padrão, via Bootstrap 5.3:
 | `/resources/type/<slug>/` | Recursos por tipo |
 | `/resources/<slug>/` | Detalhe do recurso |
 | `/resources/<slug>/edit/` | Editar recurso |
+| `/resources/<slug>/database/tables/` | Tabelas do banco |
+| `/resources/<slug>/database/relationships/` | Relacionamentos entre tabelas |
+| `/resources/<slug>/database/queries/` | Queries úteis |
 | `/relationships/new/` | Novo relacionamento |
 | `/docs/resource/<slug>/edit/` | Editar documentação |
 
@@ -113,6 +121,10 @@ pytest
 - **Resource**: recurso individual com metadados
 - **ResourceRelationship**: conexão origem → tipo → destino (ex.: invokes, publishes_to)
 - **ResourceDocumentation**: documentação Markdown vinculada ao recurso (OneToOne)
+- **DatabaseTable**: tabela de um recurso banco (RDS, DynamoDB)
+- **TableField**: campo/coluna com tipo, PK, nullable, descrição
+- **TableRelationship**: relacionamento entre tabelas (one-to-one, one-to-many, etc.)
+- **DatabaseQuery**: query útil com descrição explicativa
 
 ## Integração Wagtail e Markdown
 

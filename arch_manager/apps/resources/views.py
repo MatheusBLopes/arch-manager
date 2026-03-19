@@ -3,8 +3,22 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView
 
-from .forms import ResourceForm, ResourceTypeForm
-from .models import Resource, ResourceType
+from .forms import (
+    DatabaseQueryForm,
+    DatabaseTableForm,
+    ResourceForm,
+    ResourceTypeForm,
+    TableFieldForm,
+    TableRelationshipForm,
+)
+from .models import (
+    DatabaseQuery,
+    DatabaseTable,
+    Resource,
+    ResourceType,
+    TableField,
+    TableRelationship,
+)
 
 
 class ResourceListView(ListView):
@@ -146,3 +160,242 @@ def resource_type_update(request, slug):
         "resources/resource_type_form.html",
         {"form": form, "resource_type": resource_type},
     )
+
+
+def _get_database_resource(request, slug):
+    """Obtém recurso e verifica se é banco de dados."""
+    resource = get_object_or_404(Resource, slug=slug)
+    if not resource.is_database():
+        messages.error(request, "Este recurso não é um banco de dados.")
+        return None, redirect("resources:detail", slug=slug)
+    return resource, None
+
+
+def database_table_list(request, slug):
+    """Lista tabelas do banco."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    tables = DatabaseTable.objects.filter(resource=resource).prefetch_related("fields")
+    return render(request, "resources/database/table_list.html", {"resource": resource, "tables": tables})
+
+
+def database_table_create(request, slug):
+    """Cria tabela."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    if request.method == "POST":
+        form = DatabaseTableForm(request.POST)
+        if form.is_valid():
+            table = form.save(commit=False)
+            table.resource = resource
+            table.save()
+            messages.success(request, "Tabela criada.")
+            return redirect("resources:database-tables", slug=slug)
+    else:
+        form = DatabaseTableForm()
+    return render(request, "resources/database/table_form.html", {"form": form, "resource": resource})
+
+
+def database_table_update(request, slug, pk):
+    """Edita tabela."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=pk, resource=resource)
+    if request.method == "POST":
+        form = DatabaseTableForm(request.POST, instance=table)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tabela atualizada.")
+            return redirect("resources:database-tables", slug=slug)
+    else:
+        form = DatabaseTableForm(instance=table)
+    return render(request, "resources/database/table_form.html", {"form": form, "resource": resource, "table": table})
+
+
+def database_table_delete(request, slug, pk):
+    """Remove tabela."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=pk, resource=resource)
+    if request.method == "POST":
+        table.delete()
+        messages.success(request, "Tabela removida.")
+        return redirect("resources:database-tables", slug=slug)
+    return render(request, "resources/database/table_confirm_delete.html", {"resource": resource, "table": table})
+
+
+def database_table_detail(request, slug, pk):
+    """Detalhe da tabela com campos."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=pk, resource=resource)
+    fields = TableField.objects.filter(table=table)
+    return render(request, "resources/database/table_detail.html", {"resource": resource, "table": table, "fields": fields})
+
+
+def database_field_create(request, slug, table_pk):
+    """Cria campo em uma tabela."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=table_pk, resource=resource)
+    if request.method == "POST":
+        form = TableFieldForm(request.POST)
+        if form.is_valid():
+            field = form.save(commit=False)
+            field.table = table
+            field.save()
+            messages.success(request, "Campo criado.")
+            return redirect("resources:database-table-detail", slug=slug, pk=table_pk)
+    else:
+        form = TableFieldForm()
+    return render(request, "resources/database/field_form.html", {"form": form, "resource": resource, "table": table})
+
+
+def database_field_update(request, slug, table_pk, pk):
+    """Edita campo."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=table_pk, resource=resource)
+    field = get_object_or_404(TableField, pk=pk, table=table)
+    if request.method == "POST":
+        form = TableFieldForm(request.POST, instance=field)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Campo atualizado.")
+            return redirect("resources:database-table-detail", slug=slug, pk=table_pk)
+    else:
+        form = TableFieldForm(instance=field)
+    return render(request, "resources/database/field_form.html", {"form": form, "resource": resource, "table": table, "field": field})
+
+
+def database_field_delete(request, slug, table_pk, pk):
+    """Remove campo."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    table = get_object_or_404(DatabaseTable, pk=table_pk, resource=resource)
+    field = get_object_or_404(TableField, pk=pk, table=table)
+    if request.method == "POST":
+        field.delete()
+        messages.success(request, "Campo removido.")
+        return redirect("resources:database-table-detail", slug=slug, pk=table_pk)
+    return render(request, "resources/database/field_confirm_delete.html", {"resource": resource, "table": table, "field": field})
+
+
+def database_relationship_list(request, slug):
+    """Lista relacionamentos entre tabelas."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    relationships = TableRelationship.objects.filter(source_table__resource=resource).select_related("source_table", "target_table")
+    return render(request, "resources/database/relationship_list.html", {"resource": resource, "relationships": relationships})
+
+
+def database_relationship_create(request, slug):
+    """Cria relacionamento entre tabelas."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    if request.method == "POST":
+        form = TableRelationshipForm(request.POST, resource=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Relacionamento criado.")
+            return redirect("resources:database-relationships", slug=slug)
+    else:
+        form = TableRelationshipForm(resource=resource)
+    return render(request, "resources/database/relationship_form.html", {"form": form, "resource": resource})
+
+
+def database_relationship_update(request, slug, pk):
+    """Edita relacionamento."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    rel = get_object_or_404(TableRelationship, pk=pk, source_table__resource=resource)
+    if request.method == "POST":
+        form = TableRelationshipForm(request.POST, instance=rel, resource=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Relacionamento atualizado.")
+            return redirect("resources:database-relationships", slug=slug)
+    else:
+        form = TableRelationshipForm(instance=rel, resource=resource)
+    return render(request, "resources/database/relationship_form.html", {"form": form, "resource": resource, "relationship": rel})
+
+
+def database_relationship_delete(request, slug, pk):
+    """Remove relacionamento."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    rel = get_object_or_404(TableRelationship, pk=pk, source_table__resource=resource)
+    if request.method == "POST":
+        rel.delete()
+        messages.success(request, "Relacionamento removido.")
+        return redirect("resources:database-relationships", slug=slug)
+    return render(request, "resources/database/relationship_confirm_delete.html", {"resource": resource, "relationship": rel})
+
+
+def database_query_list(request, slug):
+    """Lista queries úteis do banco."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    queries = DatabaseQuery.objects.filter(resource=resource)
+    return render(request, "resources/database/query_list.html", {"resource": resource, "queries": queries})
+
+
+def database_query_create(request, slug):
+    """Cria query útil."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    if request.method == "POST":
+        form = DatabaseQueryForm(request.POST)
+        if form.is_valid():
+            query = form.save(commit=False)
+            query.resource = resource
+            query.save()
+            messages.success(request, "Query cadastrada.")
+            return redirect("resources:database-queries", slug=slug)
+    else:
+        form = DatabaseQueryForm()
+    return render(request, "resources/database/query_form.html", {"form": form, "resource": resource})
+
+
+def database_query_update(request, slug, pk):
+    """Edita query."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    query = get_object_or_404(DatabaseQuery, pk=pk, resource=resource)
+    if request.method == "POST":
+        form = DatabaseQueryForm(request.POST, instance=query)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Query atualizada.")
+            return redirect("resources:database-queries", slug=slug)
+    else:
+        form = DatabaseQueryForm(instance=query)
+    return render(request, "resources/database/query_form.html", {"form": form, "resource": resource, "query": query})
+
+
+def database_query_delete(request, slug, pk):
+    """Remove query."""
+    resource, err = _get_database_resource(request, slug)
+    if err:
+        return err
+    query = get_object_or_404(DatabaseQuery, pk=pk, resource=resource)
+    if request.method == "POST":
+        query.delete()
+        messages.success(request, "Query removida.")
+        return redirect("resources:database-queries", slug=slug)
+    return render(request, "resources/database/query_confirm_delete.html", {"resource": resource, "query": query})

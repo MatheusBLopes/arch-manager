@@ -440,6 +440,52 @@ A IA implementadora deverá usar Wagtail para criar um tipo de página ou estrut
 
 ---
 
+## 8.5 Entidades para recursos tipo banco de dados
+
+Quando o recurso for um banco de dados (RDS, DynamoDB, etc.), o sistema permite detalhar schema e queries.
+
+### 8.5.1 `DatabaseTable`
+
+Tabela existente no banco.
+
+* `resource`: FK para Resource (banco)
+* `name`: nome da tabela
+* `description`: texto opcional
+* `order`: ordenação
+
+### 8.5.2 `TableField`
+
+Campo/coluna de uma tabela.
+
+* `table`: FK para DatabaseTable
+* `name`: nome do campo
+* `data_type`: tipo (VARCHAR, INT, etc.)
+* `is_primary_key`: boolean
+* `is_nullable`: boolean
+* `description`: detalhes do campo
+* `order`: ordenação
+
+### 8.5.3 `TableRelationship`
+
+Relacionamento entre duas tabelas do mesmo banco.
+
+* `source_table`, `target_table`: FKs para DatabaseTable
+* `relationship_type`: one_to_one, one_to_many, many_to_one, many_to_many
+* `source_field`, `target_field`: FKs opcionais para TableField (campos da FK)
+* `description`: texto opcional
+
+### 8.5.4 `DatabaseQuery`
+
+Query útil cadastrada para o banco.
+
+* `resource`: FK para Resource (banco)
+* `name`: nome da query
+* `description`: descrição explicativa de quando e por que usar
+* `query_text`: texto da query (SQL, etc.)
+* `order`: ordenação
+
+---
+
 ## 9. Requisitos funcionais detalhados
 
 ## 9.1 Cadastro de tipos de recursos
@@ -477,7 +523,15 @@ A IA implementadora deverá usar Wagtail para criar um tipo de página ou estrut
 * RF-022: O sistema deve exibir, na página de detalhes do recurso, as relações em que ele é destino.
 * RF-023: O sistema deve permitir editar e remover relacionamentos.
 
-## 9.5 Navegação e telas
+## 9.5 Detalhes de banco de dados (recursos RDS, DynamoDB)
+
+* RF-024-DB: O sistema deve permitir cadastrar tabelas de um recurso banco.
+* RF-025-DB: O sistema deve permitir cadastrar campos de cada tabela (nome, tipo, PK, nullable, descrição).
+* RF-026-DB: O sistema deve permitir definir relacionamentos entre tabelas (um-para-um, um-para-muitos, etc.).
+* RF-027-DB: O sistema deve permitir cadastrar queries úteis com descrição explicativa.
+* RF-028-DB: A área de banco deve estar disponível apenas para recursos do tipo RDS ou DynamoDB.
+
+## 9.6 Navegação e telas
 
 * RF-024: O sistema deve possuir dashboard inicial.
 * RF-025: O sistema deve possuir menu de navegação global.
@@ -487,6 +541,7 @@ A IA implementadora deverá usar Wagtail para criar um tipo de página ou estrut
 * RF-029: O sistema deve possuir tela de detalhe de recurso.
 * RF-030: O sistema deve possuir tela de criação e edição de relacionamento.
 * RF-031: O sistema deve possuir tela de criação e edição da documentação Markdown do recurso.
+* RF-032: Para recursos banco, o sistema deve possuir telas de tabelas, campos, relacionamentos entre tabelas e queries úteis.
 
 ---
 
@@ -784,6 +839,7 @@ A IA implementadora deverá criar no mínimo:
 * `relationships/relationship_form.html`
 * `docs/documentation_form.html`
 * `docs/documentation_detail.html` se a IA quiser separar, embora o ideal seja embutir no detalhe do recurso
+* `resources/database/` (table_list, table_form, table_detail, field_form, relationship_list, relationship_form, query_list, query_form e confirms de delete)
 * includes reutilizáveis para mensagens, navbar e cards
 
 ---
@@ -798,6 +854,8 @@ A IA implementadora deve gerar testes para:
 * criação de `Resource`
 * criação válida e inválida de `ResourceRelationship`
 * vínculo entre `Resource` e documentação
+* criação de `DatabaseTable`, `TableField`, `TableRelationship`, `DatabaseQuery`
+* `Resource.is_database()` para RDS e DynamoDB
 * `__str__` das entidades principais
 
 ### 19.2 Views
@@ -810,6 +868,8 @@ A IA implementadora deve gerar testes para:
 * detalhe de recurso funciona
 * criação de relacionamento funciona
 * edição de documentação funciona
+* telas de banco (tabelas, relacionamentos, queries) respondem 200 para recurso RDS/DynamoDB
+* telas de banco redirecionam quando recurso não é banco
 
 ### 19.3 Forms
 

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{% if field %}Editar{% else %}Novo{% endif %} Campo - {{ table.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:database-tables' slug=resource.slug %}">Tabelas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:database-table-detail' slug=resource.slug pk=table.pk %}">{{ table.name }}</a></li>
+    <li class="breadcrumb-item active">{% if field %}Editar{% else %}Novo{% endif %} campo</li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">{% if field %}Editar{% else %}Novo{% endif %} Campo</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+      {{ form.name }}
+      {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.data_type.id_for_label }}" class="form-label">{{ form.data_type.label }}</label>
+      {{ form.data_type }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <div class="form-check form-switch">
+        {{ form.is_primary_key }}
+        <label for="{{ form.is_primary_key.id_for_label }}" class="form-check-label">{{ form.is_primary_key.label }}</label>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="form-check form-switch">
+        {{ form.is_nullable }}
+        <label for="{{ form.is_nullable.id_for_label }}" class="form-check-label">{{ form.is_nullable.label }}</label>
+      </div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+    {{ form.description }}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+    {{ form.order }}
+  </div>
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+    <a href="{% url 'resources:database-table-detail' slug=resource.slug pk=table.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Remover relacionamento - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:database-relationships' slug=resource.slug %}">Relacionamentos</a></li>
+    <li class="breadcrumb-item active">Remover</li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">Remover relacionamento</h1>
+<div class="alert alert-warning">
+  Deseja realmente remover o relacionamento
+  <strong>{{ relationship.source_table.name }}</strong>
+  <span class="badge bg-info">{{ relationship.get_relationship_type_display }}</span>
+  <strong>{{ relationship.target_table.name }}</strong>?
+</div>
+<form method="post">
+  {% csrf_token %}
+  <div class="btn-toolbar">
+    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, remover</button>
+    <a href="{% url 'resources:database-relationships' slug=resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

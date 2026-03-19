@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ table.name }} - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:database-tables' slug=resource.slug %}">Tabelas</a></li>
+    <li class="breadcrumb-item active">{{ table.name }}</li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+  <div>
+    <h1 class="mb-1">{{ table.name }}</h1>
+    {% if table.description %}<p class="text-muted mb-0">{{ table.description }}</p>{% endif %}
+  </div>
+  <div class="btn-toolbar">
+    <a href="{% url 'resources:database-field-create' slug=resource.slug table_pk=table.pk %}" class="btn btn-primary">Novo Campo</a>
+    <a href="{% url 'resources:database-table-update' slug=resource.slug pk=table.pk %}" class="btn btn-outline-secondary">Editar Tabela</a>
+    <a href="{% url 'resources:database-table-delete' slug=resource.slug pk=table.pk %}" class="btn btn-outline-danger">Remover</a>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Campos</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>PK</th>
+          <th>Nullable</th>
+          <th>Descrição</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for field in fields %}
+          <tr>
+            <td><code>{{ field.name }}</code></td>
+            <td>{{ field.data_type|default:"—" }}</td>
+            <td>{% if field.is_primary_key %}<span class="badge bg-primary">Sim</span>{% else %}—{% endif %}</td>
+            <td>{% if field.is_nullable %}Sim{% else %}Não{% endif %}</td>
+            <td>{{ field.description|truncatewords:10|default:"—" }}</td>
+            <td class="text-end">
+              <a href="{% url 'resources:database-field-update' slug=resource.slug table_pk=table.pk pk=field.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+              <a href="{% url 'resources:database-field-delete' slug=resource.slug table_pk=table.pk pk=field.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Nenhum campo. Clique em "Novo Campo" para adicionar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p>
+  <a href="{% url 'resources:database-tables' slug=resource.slug %}" class="btn btn-outline-secondary">Voltar às tabelas</a>
+</p>
+{% endblock %}
