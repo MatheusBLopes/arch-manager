@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{% if resource %}Editar{% else %}Novo{% endif %} Recurso{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if resource %}Editar{% else %}Novo{% endif %} Recurso</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+      {{ form.name }}
+      {% if form.name.errors %}
+        <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.slug.id_for_label }}" class="form-label">{{ form.slug.label }}</label>
+      {{ form.slug }}
+      {% if form.slug.errors %}
+        <div class="invalid-feedback d-block">{{ form.slug.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.resource_type.id_for_label }}" class="form-label">{{ form.resource_type.label }}</label>
+    {{ form.resource_type }}
+    {% if form.resource_type.errors %}
+      <div class="invalid-feedback d-block">{{ form.resource_type.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.short_description.id_for_label }}" class="form-label">{{ form.short_description.label }}</label>
+    {{ form.short_description }}
+    {% if form.short_description.errors %}
+      <div class="invalid-feedback d-block">{{ form.short_description.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.detailed_description.id_for_label }}" class="form-label">{{ form.detailed_description.label }}</label>
+    {{ form.detailed_description }}
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="{{ form.service_name.id_for_label }}" class="form-label">{{ form.service_name.label }}</label>
+      {{ form.service_name }}
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="{{ form.environment.id_for_label }}" class="form-label">{{ form.environment.label }}</label>
+      {{ form.environment }}
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
+      {{ form.region }}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.identifier.id_for_label }}" class="form-label">{{ form.identifier.label }}</label>
+      {{ form.identifier }}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.endpoint_or_path.id_for_label }}" class="form-label">{{ form.endpoint_or_path.label }}</label>
+      {{ form.endpoint_or_path }}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+      {{ form.status }}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.is_active.id_for_label }}" class="form-label">{{ form.is_active.label }}</label>
+      <div class="form-check form-switch mt-2">
+        {{ form.is_active }}
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+    {{ form.notes }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  {% if resource %}
+    <a href="{% url 'resources:detail' slug=resource.slug %}" class="btn btn-secondary">Cancelar</a>
+  {% else %}
+    <a href="{% url 'resources:list' %}" class="btn btn-secondary">Cancelar</a>
+  {% endif %}
+</form>
+{% endblock %}

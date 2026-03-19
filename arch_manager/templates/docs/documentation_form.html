@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Documentação - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Documentação: {{ resource.name }}</h1>
+
+<div class="alert alert-light border">
+  <small>
+    <i class="bi bi-info-circle"></i> Edite o conteúdo em <strong>Markdown</strong>. Será renderizado automaticamente na página de detalhes do recurso.
+  </small>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="mb-3">
+    <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+    {{ form.title }}
+    {% if form.title.errors %}
+      <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-4">
+    <label for="{{ form.markdown_content.id_for_label }}" class="form-label">{{ form.markdown_content.label }}</label>
+    {{ form.markdown_content }}
+    {% if form.markdown_content.errors %}
+      <div class="invalid-feedback d-block">{{ form.markdown_content.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar Documentação</button>
+  <a href="{% url 'resources:detail' slug=resource.slug %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

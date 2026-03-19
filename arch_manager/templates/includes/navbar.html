@@ -1,0 +1,33 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{% url 'core:dashboard' %}">
+      <i class="bi bi-diagram-3"></i> Arch Manager
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'resources:list' %}">Recursos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'resources:type-list' %}">Tipos</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Novo
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'resources:create' %}">Novo Recurso</a></li>
+            <li><a class="dropdown-item" href="{% url 'relationships:create' %}">Novo Relacionamento</a></li>
+            <li><a class="dropdown-item" href="{% url 'resources:type-create' %}">Novo Tipo</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

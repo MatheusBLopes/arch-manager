@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{% if relationship %}Editar{% else %}Novo{% endif %} Relacionamento{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if relationship %}Editar{% else %}Novo{% endif %} Relacionamento</h1>
+
+{% if source_resource %}
+  <div class="alert alert-info">Criando relacionamento a partir de <strong>{{ source_resource.name }}</strong></div>
+{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.source_resource.id_for_label }}" class="form-label">{{ form.source_resource.label }}</label>
+      {{ form.source_resource }}
+      {% if form.source_resource.errors %}
+        <div class="invalid-feedback d-block">{{ form.source_resource.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.relationship_type.id_for_label }}" class="form-label">{{ form.relationship_type.label }}</label>
+      {{ form.relationship_type }}
+      {% if form.relationship_type.errors %}
+        <div class="invalid-feedback d-block">{{ form.relationship_type.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.target_resource.id_for_label }}" class="form-label">{{ form.target_resource.label }}</label>
+    {{ form.target_resource }}
+    {% if form.target_resource.errors %}
+      <div class="invalid-feedback d-block">{{ form.target_resource.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+    {{ form.description }}
+  </div>
+
+  <div class="mb-4">
+    <label for="{{ form.is_active.id_for_label }}" class="form-label">{{ form.is_active.label }}</label>
+    <div class="form-check form-switch mt-2">
+      {{ form.is_active }}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  {% if source_resource %}
+    <a href="{% url 'resources:detail' slug=source_resource.slug %}" class="btn btn-secondary">Cancelar</a>
+  {% elif relationship %}
+    <a href="{% url 'resources:detail' slug=relationship.source_resource.slug %}" class="btn btn-secondary">Cancelar</a>
+  {% else %}
+    <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Cancelar</a>
+  {% endif %}
+</form>
+{% endblock %}

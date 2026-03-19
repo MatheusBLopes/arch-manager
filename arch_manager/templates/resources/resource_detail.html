@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load docs_extras %}
+
+{% block title %}{{ resource.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h1>{{ resource.name }}</h1>
+    <span class="badge bg-primary">{{ resource.resource_type.name }}</span>
+    {% if resource.status %}
+      <span class="badge bg-secondary">{{ resource.status }}</span>
+    {% endif %}
+  </div>
+  <div>
+    <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil"></i> Editar Recurso
+    </a>
+    <a href="{% url 'docs:edit' resource_slug=resource.slug %}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-text"></i> {% if resource.documentation %}Editar{% else %}Criar{% endif %} Documentação
+    </a>
+    <a href="{% url 'relationships:create-for-resource' resource_slug=resource.slug %}" class="btn btn-outline-success">
+      <i class="bi bi-link-45deg"></i> Adicionar Relacionamento
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header">Metadados</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>Descrição curta:</strong> {{ resource.short_description }}</li>
+        {% if resource.detailed_description %}
+          <li class="list-group-item"><strong>Descrição detalhada:</strong><br>{{ resource.detailed_description }}</li>
+        {% endif %}
+        {% if resource.service_name %}
+          <li class="list-group-item"><strong>Serviço:</strong> {{ resource.service_name }}</li>
+        {% endif %}
+        {% if resource.environment %}
+          <li class="list-group-item"><strong>Ambiente:</strong> {{ resource.environment }}</li>
+        {% endif %}
+        {% if resource.region %}
+          <li class="list-group-item"><strong>Região:</strong> {{ resource.region }}</li>
+        {% endif %}
+        {% if resource.identifier %}
+          <li class="list-group-item"><strong>Identificador:</strong> {{ resource.identifier }}</li>
+        {% endif %}
+        {% if resource.endpoint_or_path %}
+          <li class="list-group-item"><strong>Endpoint/Path:</strong> <code>{{ resource.endpoint_or_path }}</code></li>
+        {% endif %}
+        {% if resource.notes %}
+          <li class="list-group-item"><strong>Notas:</strong> {{ resource.notes }}</li>
+        {% endif %}
+        <li class="list-group-item text-muted small">Atualizado em {{ resource.updated_at|date:"d/m/Y H:i" }}</li>
+      </ul>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Relacionamentos de Saída</div>
+      <ul class="list-group list-group-flush">
+        {% for rel in resource.outgoing_relationships.all %}
+          {% if rel.is_active %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <span class="badge bg-info">{{ rel.get_relationship_type_display }}</span>
+                <a href="{% url 'resources:detail' slug=rel.target_resource.slug %}">{{ rel.target_resource.name }}</a>
+              </span>
+              <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+              <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+            </li>
+          {% endif %}
+        {% empty %}
+          <li class="list-group-item text-muted">Nenhum relacionamento de saída</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Relacionamentos de Entrada</div>
+      <ul class="list-group list-group-flush">
+        {% for rel in resource.incoming_relationships.all %}
+          {% if rel.is_active %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <a href="{% url 'resources:detail' slug=rel.source_resource.slug %}">{{ rel.source_resource.name }}</a>
+                <span class="badge bg-info">{{ rel.get_relationship_type_display }}</span>
+              </span>
+              <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+              <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+            </li>
+          {% endif %}
+        {% empty %}
+          <li class="list-group-item text-muted">Nenhum relacionamento de entrada</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        Documentação
+        {% if resource.documentation %}
+          <span class="badge bg-success">Atualizado em {{ resource.documentation.last_updated_at|date:"d/m/Y H:i" }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body markdown-content">
+        {% if resource.documentation %}
+          {% if resource.documentation.markdown_content %}
+            {{ resource.documentation.markdown_content|markdown_render }}
+          {% else %}
+            <p class="text-muted">Documentação ainda não preenchida. Clique em "Criar Documentação" para começar.</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted">Este recurso ainda não possui documentação. Clique em "Criar Documentação" para adicionar conteúdo em Markdown.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
