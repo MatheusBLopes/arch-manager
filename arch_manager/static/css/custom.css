@@ -1,19 +1,22 @@
-/* Estilos customizados para Arch Manager */
+/* Estilos customizados para Arch Manager - tema escuro Bootstrap 5 */
 .markdown-content pre {
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
   padding: 1rem;
   border-radius: 0.25rem;
   overflow-x: auto;
+  border: 1px solid var(--bs-border-color);
 }
 .markdown-content code {
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
   padding: 0.2em 0.4em;
   border-radius: 0.25rem;
   font-size: 0.9em;
+  border: 1px solid var(--bs-border-color-translucent);
 }
 .markdown-content pre code {
   padding: 0;
   background: none;
+  border: none;
 }
 .markdown-content table {
   width: 100%;
@@ -22,5 +25,5 @@
 .markdown-content th,
 .markdown-content td {
   padding: 0.75rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--bs-border-color);
 }

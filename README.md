@@ -8,6 +8,7 @@ Catálogo e mapa documental de arquitetura AWS para execução local. Permite ca
 - **Django** 5
 - **Wagtail** 6 (gerenciamento de documentação)
 - **Bootstrap** 5
+- **Tema escuro** (Bootstrap 5 dark mode)
 - **SQLite**
 - **Markdown** para documentação
 
@@ -70,6 +71,14 @@ python manage.py runserver
 ```
 
 Acesse: **http://127.0.0.1:8000/**
+
+## Tema escuro
+
+A interface usa **tema escuro (dark mode)** por padrão, via Bootstrap 5.3:
+
+- `data-bs-theme="dark"` no elemento HTML
+- highlight.js com estilo `github-dark` para código na documentação
+- Cores e contraste otimizados para leitura prolongada
 
 ## Uso
 

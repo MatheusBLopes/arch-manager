@@ -105,6 +105,7 @@ Ela deverá entregar:
 * HTML5
 * CSS3
 * Bootstrap 5
+* **tema escuro** (Bootstrap 5 dark mode via `data-bs-theme="dark"`)
 * JavaScript vanilla apenas para pequenas interações de interface, se necessário
 
 ### 3.4 Documentação de conteúdo
@@ -654,6 +655,15 @@ A página de detalhe é central no sistema e deve priorizar:
 * leitura rápida dos metadados
 * leitura confortável da documentação
 * visualização clara dos relacionamentos
+
+### 13.4 Tema escuro
+
+A aplicação utiliza **tema escuro (dark mode)** por padrão:
+
+* Bootstrap 5.3+ com `data-bs-theme="dark"` no elemento raiz
+* highlight.js com estilo `github-dark` para blocos de código na documentação Markdown
+* variáveis CSS do Bootstrap (`--bs-tertiary-bg`, `--bs-border-color`) para consistência visual em blocos de código e tabelas
+* navbar em tons escuros para harmonia com o tema
 
 ---
 
