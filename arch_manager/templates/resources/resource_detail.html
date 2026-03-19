@@ -4,23 +4,23 @@
 {% block title %}{{ resource.name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
   <div>
-    <h1>{{ resource.name }}</h1>
+    <h1 class="mb-2">{{ resource.name }}</h1>
     <span class="badge bg-primary">{{ resource.resource_type.name }}</span>
     {% if resource.status %}
       <span class="badge bg-secondary">{{ resource.status }}</span>
     {% endif %}
   </div>
-  <div>
+  <div class="btn-toolbar">
     <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-outline-primary">
-      <i class="bi bi-pencil"></i> Editar Recurso
+      <i class="bi bi-pencil"></i> Editar
     </a>
     <a href="{% url 'docs:edit' resource_slug=resource.slug %}" class="btn btn-outline-secondary">
-      <i class="bi bi-file-text"></i> {% if resource.documentation %}Editar{% else %}Criar{% endif %} Documentação
+      <i class="bi bi-file-text"></i> {% if resource.documentation %}Documentação{% else %}Criar Doc{% endif %}
     </a>
     <a href="{% url 'relationships:create-for-resource' resource_slug=resource.slug %}" class="btn btn-outline-success">
-      <i class="bi bi-link-45deg"></i> Adicionar Relacionamento
+      <i class="bi bi-link-45deg"></i> Relacionar
     </a>
   </div>
 </div>
@@ -61,13 +61,15 @@
       <ul class="list-group list-group-flush">
         {% for rel in resource.outgoing_relationships.all %}
           {% if rel.is_active %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+            <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
               <span>
                 <span class="badge bg-info">{{ rel.get_relationship_type_display }}</span>
                 <a href="{% url 'resources:detail' slug=rel.target_resource.slug %}">{{ rel.target_resource.name }}</a>
               </span>
-              <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
-              <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-outline-danger" title="Remover"><i class="bi bi-trash"></i></a>
+              </div>
             </li>
           {% endif %}
         {% empty %}
@@ -81,13 +83,15 @@
       <ul class="list-group list-group-flush">
         {% for rel in resource.incoming_relationships.all %}
           {% if rel.is_active %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+            <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
               <span>
                 <a href="{% url 'resources:detail' slug=rel.source_resource.slug %}">{{ rel.source_resource.name }}</a>
                 <span class="badge bg-info">{{ rel.get_relationship_type_display }}</span>
               </span>
-              <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
-              <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-outline-danger" title="Remover"><i class="bi bi-trash"></i></a>
+              </div>
             </li>
           {% endif %}
         {% empty %}

@@ -14,7 +14,11 @@
 
 <form method="post">
   {% csrf_token %}
-  <button type="submit" class="btn btn-danger">Sim, remover</button>
-  <a href="{% url 'resources:detail' slug=relationship.source_resource.slug %}" class="btn btn-secondary">Cancelar</a>
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-danger">
+      <i class="bi bi-trash"></i> Sim, remover
+    </button>
+    <a href="{% url 'resources:detail' slug=relationship.source_resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
 </form>
 {% endblock %}

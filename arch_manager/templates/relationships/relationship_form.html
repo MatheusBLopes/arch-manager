@@ -53,13 +53,17 @@
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary">Salvar</button>
-  {% if source_resource %}
-    <a href="{% url 'resources:detail' slug=source_resource.slug %}" class="btn btn-secondary">Cancelar</a>
-  {% elif relationship %}
-    <a href="{% url 'resources:detail' slug=relationship.source_resource.slug %}" class="btn btn-secondary">Cancelar</a>
-  {% else %}
-    <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Cancelar</a>
-  {% endif %}
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg"></i> Salvar
+    </button>
+    {% if source_resource %}
+      <a href="{% url 'resources:detail' slug=source_resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% elif relationship %}
+      <a href="{% url 'resources:detail' slug=relationship.source_resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% else %}
+      <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% endif %}
+  </div>
 </form>
 {% endblock %}

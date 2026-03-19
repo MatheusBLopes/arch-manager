@@ -94,11 +94,15 @@
     {{ form.notes }}
   </div>
 
-  <button type="submit" class="btn btn-primary">Salvar</button>
-  {% if resource %}
-    <a href="{% url 'resources:detail' slug=resource.slug %}" class="btn btn-secondary">Cancelar</a>
-  {% else %}
-    <a href="{% url 'resources:list' %}" class="btn btn-secondary">Cancelar</a>
-  {% endif %}
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg"></i> Salvar
+    </button>
+    {% if resource %}
+      <a href="{% url 'resources:detail' slug=resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% else %}
+      <a href="{% url 'resources:list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% endif %}
+  </div>
 </form>
 {% endblock %}

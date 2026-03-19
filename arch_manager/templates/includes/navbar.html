@@ -21,10 +21,11 @@
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Novo
           </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'resources:create' %}">Novo Recurso</a></li>
-            <li><a class="dropdown-item" href="{% url 'relationships:create' %}">Novo Relacionamento</a></li>
-            <li><a class="dropdown-item" href="{% url 'resources:type-create' %}">Novo Tipo</a></li>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'resources:create' %}"><i class="bi bi-plus-circle me-2"></i>Novo Recurso</a></li>
+            <li><a class="dropdown-item" href="{% url 'relationships:create' %}"><i class="bi bi-link-45deg me-2"></i>Novo Relacionamento</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'resources:type-create' %}"><i class="bi bi-tag me-2"></i>Novo Tipo</a></li>
           </ul>
         </li>
       </ul>

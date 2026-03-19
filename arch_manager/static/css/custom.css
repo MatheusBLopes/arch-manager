@@ -1,4 +1,16 @@
 /* Estilos customizados para Arch Manager - tema escuro Bootstrap 5 */
+
+/* Barra de botões padronizada */
+.btn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn-toolbar .btn {
+  white-space: nowrap;
+}
+
 .markdown-content pre {
   background-color: var(--bs-tertiary-bg);
   padding: 1rem;

@@ -6,37 +6,39 @@
 <h1 class="mb-4">Dashboard</h1>
 
 <div class="row g-4 mb-4">
-  <div class="col-md-4">
+  <div class="col-12 col-md-4">
     <div class="card h-100 border-primary">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h5 class="card-title text-primary">
           <i class="bi bi-collection"></i> Total de Recursos
         </h5>
         <p class="card-text display-6">{{ total_resources }}</p>
-        <a href="{% url 'resources:list' %}" class="btn btn-outline-primary btn-sm">Ver todos</a>
+        <a href="{% url 'resources:list' %}" class="btn btn-outline-primary btn-sm align-self-start">Ver todos</a>
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-12 col-md-4">
     <div class="card h-100">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h5 class="card-title">
           <i class="bi bi-tags"></i> Tipos de Recurso
         </h5>
         <p class="card-text display-6">{{ resource_types|length }}</p>
-        <a href="{% url 'resources:type-list' %}" class="btn btn-outline-secondary btn-sm">Ver tipos</a>
+        <a href="{% url 'resources:type-list' %}" class="btn btn-outline-secondary btn-sm align-self-start">Ver tipos</a>
       </div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-12 col-md-4">
     <div class="card h-100">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h5 class="card-title">
           <i class="bi bi-plus-circle"></i> Ações Rápidas
         </h5>
         <p class="card-text">Cadastre novos recursos e relacionamentos</p>
-        <a href="{% url 'resources:create' %}" class="btn btn-primary btn-sm me-1">Novo Recurso</a>
-        <a href="{% url 'relationships:create' %}" class="btn btn-secondary btn-sm">Novo Relacionamento</a>
+        <div class="btn-toolbar mt-auto">
+          <a href="{% url 'resources:create' %}" class="btn btn-primary btn-sm">Novo Recurso</a>
+          <a href="{% url 'relationships:create' %}" class="btn btn-outline-secondary btn-sm">Novo Relacionamento</a>
+        </div>
       </div>
     </div>
   </div>

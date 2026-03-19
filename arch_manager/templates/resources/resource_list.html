@@ -3,18 +3,18 @@
 {% block title %}Recursos{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1>Recursos</h1>
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+  <h1 class="mb-0">Recursos</h1>
   <a href="{% url 'resources:create' %}" class="btn btn-primary">
     <i class="bi bi-plus-lg"></i> Novo Recurso
   </a>
 </div>
 
-<form method="get" class="row g-3 mb-4">
-  <div class="col-md-6">
+<form method="get" class="row g-2 g-md-3 mb-4">
+  <div class="col-12 col-md-6">
     <input type="text" name="q" class="form-control" placeholder="Buscar por nome, descrição ou tipo..." value="{{ search }}">
   </div>
-  <div class="col-md-4">
+  <div class="col-8 col-md-4">
     <select name="type" class="form-select">
       <option value="">Todos os tipos</option>
       {% for rt in resource_types %}
@@ -22,9 +22,9 @@
       {% endfor %}
     </select>
   </div>
-  <div class="col-md-2">
-    <button type="submit" class="btn btn-outline-primary w-100">
-      <i class="bi bi-search"></i> Filtrar
+  <div class="col-4 col-md-2">
+    <button type="submit" class="btn btn-primary w-100">
+      <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Filtrar</span>
     </button>
   </div>
 </form>
@@ -49,8 +49,8 @@
           <td><span class="badge bg-secondary">{{ resource.resource_type.name }}</span></td>
           <td>{{ resource.short_description|truncatewords:15 }}</td>
           <td>{{ resource.environment|default:"" }} {{ resource.region|default:"" }}</td>
-          <td>
-            <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+          <td class="text-end">
+            <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
           </td>
         </tr>
       {% empty %}
