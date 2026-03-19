@@ -20,7 +20,7 @@
       <tr>
         <th>Nome</th>
         <th>Descrição</th>
-        <th>Ambiente/Região</th>
+        <th>Runtime</th>
         <th></th>
       </tr>
     </thead>
@@ -31,7 +31,7 @@
             <a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a>
           </td>
           <td>{{ resource.short_description|truncatewords:15 }}</td>
-          <td>{{ resource.environment|default:"" }} {{ resource.region|default:"" }}</td>
+          <td>{{ resource.runtime_version|default:"—" }}</td>
           <td class="text-end">
             <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
           </td>

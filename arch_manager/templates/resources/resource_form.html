@@ -50,43 +50,15 @@
     {{ form.detailed_description }}
   </div>
 
-  <div class="row">
-    <div class="col-md-4 mb-3">
-      <label for="{{ form.service_name.id_for_label }}" class="form-label">{{ form.service_name.label }}</label>
-      {{ form.service_name }}
-    </div>
-    <div class="col-md-4 mb-3">
-      <label for="{{ form.environment.id_for_label }}" class="form-label">{{ form.environment.label }}</label>
-      {{ form.environment }}
-    </div>
-    <div class="col-md-4 mb-3">
-      <label for="{{ form.region.id_for_label }}" class="form-label">{{ form.region.label }}</label>
-      {{ form.region }}
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label for="{{ form.identifier.id_for_label }}" class="form-label">{{ form.identifier.label }}</label>
-      {{ form.identifier }}
-    </div>
-    <div class="col-md-6 mb-3">
-      <label for="{{ form.endpoint_or_path.id_for_label }}" class="form-label">{{ form.endpoint_or_path.label }}</label>
-      {{ form.endpoint_or_path }}
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
-      {{ form.status }}
-    </div>
-    <div class="col-md-6 mb-3">
-      <label for="{{ form.is_active.id_for_label }}" class="form-label">{{ form.is_active.label }}</label>
-      <div class="form-check form-switch mt-2">
-        {{ form.is_active }}
-      </div>
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.runtime_version.id_for_label }}" class="form-label">{{ form.runtime_version.label }}</label>
+    {{ form.runtime_version }}
+    {% if form.runtime_version.help_text %}
+      <div class="form-text">{{ form.runtime_version.help_text }}</div>
+    {% endif %}
+    {% if form.runtime_version.errors %}
+      <div class="invalid-feedback d-block">{{ form.runtime_version.errors.0 }}</div>
+    {% endif %}
   </div>
 
   <div class="mb-4">

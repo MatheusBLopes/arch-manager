@@ -8,8 +8,8 @@
   <div>
     <h1 class="mb-2">{{ resource.name }}</h1>
     <span class="badge bg-primary">{{ resource.resource_type.name }}</span>
-    {% if resource.status %}
-      <span class="badge bg-secondary">{{ resource.status }}</span>
+    {% if resource.runtime_version %}
+      <span class="badge bg-secondary">{{ resource.runtime_version }}</span>
     {% endif %}
   </div>
   <div class="btn-toolbar">
@@ -34,20 +34,8 @@
         {% if resource.detailed_description %}
           <li class="list-group-item"><strong>Descrição detalhada:</strong><br>{{ resource.detailed_description }}</li>
         {% endif %}
-        {% if resource.service_name %}
-          <li class="list-group-item"><strong>Serviço:</strong> {{ resource.service_name }}</li>
-        {% endif %}
-        {% if resource.environment %}
-          <li class="list-group-item"><strong>Ambiente:</strong> {{ resource.environment }}</li>
-        {% endif %}
-        {% if resource.region %}
-          <li class="list-group-item"><strong>Região:</strong> {{ resource.region }}</li>
-        {% endif %}
-        {% if resource.identifier %}
-          <li class="list-group-item"><strong>Identificador:</strong> {{ resource.identifier }}</li>
-        {% endif %}
-        {% if resource.endpoint_or_path %}
-          <li class="list-group-item"><strong>Endpoint/Path:</strong> <code>{{ resource.endpoint_or_path }}</code></li>
+        {% if resource.runtime_version %}
+          <li class="list-group-item"><strong>Runtime:</strong> <code>{{ resource.runtime_version }}</code></li>
         {% endif %}
         {% if resource.notes %}
           <li class="list-group-item"><strong>Notas:</strong> {{ resource.notes }}</li>

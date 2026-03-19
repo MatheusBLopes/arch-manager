@@ -26,7 +26,7 @@ class ResourceRelationshipForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        qs = Resource.objects.filter(is_active=True).select_related("resource_type")
+        qs = Resource.objects.all().select_related("resource_type")
         self.fields["source_resource"].queryset = qs
         self.fields["target_resource"].queryset = qs
 

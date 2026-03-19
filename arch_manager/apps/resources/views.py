@@ -15,7 +15,7 @@ class ResourceListView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Resource.objects.filter(is_active=True).select_related("resource_type")
+        qs = Resource.objects.all().select_related("resource_type")
         search = self.request.GET.get("q", "").strip()
         type_slug = self.request.GET.get("type", "").strip()
         if search:
@@ -51,7 +51,6 @@ class ResourceByTypeListView(ListView):
         )
         return Resource.objects.filter(
             resource_type=self.resource_type,
-            is_active=True,
         ).select_related("resource_type").order_by("name")
 
     def get_context_data(self, **kwargs):
@@ -109,7 +108,7 @@ def resource_update(request, slug):
 def resource_type_list(request):
     """Listagem de tipos de recurso."""
     types = ResourceType.objects.filter(is_active=True).annotate(
-        resource_count=Count("resources", filter=Q(resources__is_active=True))
+        resource_count=Count("resources")
     )
     return render(
         request,

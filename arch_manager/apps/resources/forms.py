@@ -13,14 +13,8 @@ class ResourceForm(forms.ModelForm):
             "resource_type",
             "short_description",
             "detailed_description",
-            "service_name",
-            "environment",
-            "region",
-            "identifier",
-            "endpoint_or_path",
-            "status",
+            "runtime_version",
             "notes",
-            "is_active",
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
@@ -28,14 +22,13 @@ class ResourceForm(forms.ModelForm):
             "resource_type": forms.Select(attrs={"class": "form-select"}),
             "short_description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "detailed_description": forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
-            "service_name": forms.TextInput(attrs={"class": "form-control"}),
-            "environment": forms.TextInput(attrs={"class": "form-control"}),
-            "region": forms.TextInput(attrs={"class": "form-control"}),
-            "identifier": forms.TextInput(attrs={"class": "form-control"}),
-            "endpoint_or_path": forms.TextInput(attrs={"class": "form-control"}),
-            "status": forms.TextInput(attrs={"class": "form-control"}),
+            "runtime_version": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ex: python3.12.0, nodejs20.x",
+                }
+            ),
             "notes": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
-            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, **kwargs):
