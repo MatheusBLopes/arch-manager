@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Projeto{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Excluir Projeto</h1>
+
+<div class="alert alert-warning">
+  <p class="mb-0">
+    Tem certeza que deseja excluir o projeto <strong>{{ project.name }}</strong>?
+    Os recursos vinculados não serão excluídos, mas ficarão sem projeto.
+  </p>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">
+    <i class="bi bi-trash"></i> Sim, excluir
+  </button>
+  <a href="{% url 'projects:detail' slug=project.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+</form>
+{% endblock %}

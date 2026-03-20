@@ -12,6 +12,9 @@
           <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="{% url 'projects:list' %}">Projetos</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{% url 'resources:list' %}">Recursos</a>
         </li>
         <li class="nav-item">
@@ -22,6 +25,7 @@
             Novo
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'projects:create' %}"><i class="bi bi-folder-plus me-2"></i>Novo Projeto</a></li>
             <li><a class="dropdown-item" href="{% url 'resources:create' %}"><i class="bi bi-plus-circle me-2"></i>Novo Recurso</a></li>
             <li><a class="dropdown-item" href="{% url 'relationships:create' %}"><i class="bi bi-link-45deg me-2"></i>Novo Relacionamento</a></li>
             <li><hr class="dropdown-divider"></li>

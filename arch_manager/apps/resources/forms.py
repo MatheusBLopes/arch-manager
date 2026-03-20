@@ -2,6 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
+from arch_manager.apps.projects.models import Project
+
 from .models import (
     DatabaseQuery,
     DatabaseTable,
@@ -19,15 +21,19 @@ class ResourceForm(forms.ModelForm):
             "name",
             "slug",
             "resource_type",
+            "project",
             "short_description",
             "detailed_description",
             "runtime_version",
+            "repository_url",
+            "has_pentest",
             "notes",
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "slug": forms.TextInput(attrs={"class": "form-control"}),
             "resource_type": forms.Select(attrs={"class": "form-select"}),
+            "project": forms.Select(attrs={"class": "form-select"}),
             "short_description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "detailed_description": forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
             "runtime_version": forms.TextInput(
@@ -36,12 +42,16 @@ class ResourceForm(forms.ModelForm):
                     "placeholder": "Ex: python3.12.0, nodejs20.x",
                 }
             ),
+            "repository_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://github.com/..."}),
+            "has_pentest": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "notes": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["resource_type"].queryset = ResourceType.objects.filter(is_active=True)
+        self.fields["project"].queryset = Project.objects.all()
+        self.fields["project"].required = False
 
     def clean_slug(self):
         slug = self.cleaned_data.get("slug")

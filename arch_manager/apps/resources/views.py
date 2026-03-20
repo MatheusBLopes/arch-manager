@@ -81,7 +81,7 @@ class ResourceDetailView(DetailView):
     slug_url_kwarg = "slug"
 
     def get_queryset(self):
-        return Resource.objects.select_related("resource_type").prefetch_related(
+        return Resource.objects.select_related("resource_type", "project").prefetch_related(
             "outgoing_relationships__target_resource",
             "incoming_relationships__source_resource",
         )

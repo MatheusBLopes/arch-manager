@@ -8,6 +8,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("", include("arch_manager.apps.core.urls")),
+    path("projects/", include("arch_manager.apps.projects.urls")),
     path("resources/", include("arch_manager.apps.resources.urls")),
     path("relationships/", include("arch_manager.apps.relationships.urls")),
     path("docs/", include("arch_manager.apps.docs.urls")),

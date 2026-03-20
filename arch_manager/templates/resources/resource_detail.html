@@ -8,8 +8,14 @@
   <div>
     <h1 class="mb-2">{{ resource.name }}</h1>
     <span class="badge bg-primary">{{ resource.resource_type.name }}</span>
+    {% if resource.project %}
+      <a href="{% url 'projects:detail' slug=resource.project.slug %}" class="badge bg-info text-decoration-none">{{ resource.project.name }}</a>
+    {% endif %}
     {% if resource.runtime_version %}
       <span class="badge bg-secondary">{{ resource.runtime_version }}</span>
+    {% endif %}
+    {% if resource.has_pentest %}
+      <span class="badge bg-success">Pentest</span>
     {% endif %}
   </div>
   <div class="btn-toolbar">
@@ -41,6 +47,12 @@
         {% endif %}
         {% if resource.runtime_version %}
           <li class="list-group-item"><strong>Runtime:</strong> <code>{{ resource.runtime_version }}</code></li>
+        {% endif %}
+        {% if resource.repository_url %}
+          <li class="list-group-item"><strong>Repositório:</strong> <a href="{{ resource.repository_url }}" target="_blank" rel="noopener">{{ resource.repository_url|truncatechars:50 }}</a></li>
+        {% endif %}
+        {% if resource.project %}
+          <li class="list-group-item"><strong>Projeto:</strong> <a href="{% url 'projects:detail' slug=resource.project.slug %}">{{ resource.project.name }}</a></li>
         {% endif %}
         {% if resource.notes %}
           <li class="list-group-item"><strong>Notas:</strong> {{ resource.notes }}</li>

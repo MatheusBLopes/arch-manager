@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "modelcluster",
     "taggit",
     "arch_manager.apps.core",
+    "arch_manager.apps.projects",
     "arch_manager.apps.resources",
     "arch_manager.apps.relationships",
     "arch_manager.apps.docs",

@@ -29,12 +29,21 @@
     </div>
   </div>
 
-  <div class="mb-3">
-    <label for="{{ form.resource_type.id_for_label }}" class="form-label">{{ form.resource_type.label }}</label>
-    {{ form.resource_type }}
-    {% if form.resource_type.errors %}
-      <div class="invalid-feedback d-block">{{ form.resource_type.errors.0 }}</div>
-    {% endif %}
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.resource_type.id_for_label }}" class="form-label">{{ form.resource_type.label }}</label>
+      {{ form.resource_type }}
+      {% if form.resource_type.errors %}
+        <div class="invalid-feedback d-block">{{ form.resource_type.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.project.id_for_label }}" class="form-label">{{ form.project.label }}</label>
+      {{ form.project }}
+      {% if form.project.errors %}
+        <div class="invalid-feedback d-block">{{ form.project.errors.0 }}</div>
+      {% endif %}
+    </div>
   </div>
 
   <div class="mb-3">
@@ -50,15 +59,31 @@
     {{ form.detailed_description }}
   </div>
 
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.runtime_version.id_for_label }}" class="form-label">{{ form.runtime_version.label }}</label>
+      {{ form.runtime_version }}
+      {% if form.runtime_version.help_text %}
+        <div class="form-text">{{ form.runtime_version.help_text }}</div>
+      {% endif %}
+      {% if form.runtime_version.errors %}
+        <div class="invalid-feedback d-block">{{ form.runtime_version.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.repository_url.id_for_label }}" class="form-label">{{ form.repository_url.label }}</label>
+      {{ form.repository_url }}
+      {% if form.repository_url.errors %}
+        <div class="invalid-feedback d-block">{{ form.repository_url.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="mb-3">
-    <label for="{{ form.runtime_version.id_for_label }}" class="form-label">{{ form.runtime_version.label }}</label>
-    {{ form.runtime_version }}
-    {% if form.runtime_version.help_text %}
-      <div class="form-text">{{ form.runtime_version.help_text }}</div>
-    {% endif %}
-    {% if form.runtime_version.errors %}
-      <div class="invalid-feedback d-block">{{ form.runtime_version.errors.0 }}</div>
-    {% endif %}
+    <div class="form-check">
+      {{ form.has_pentest }}
+      <label for="{{ form.has_pentest.id_for_label }}" class="form-check-label">{{ form.has_pentest.label }}</label>
+    </div>
   </div>
 
   <div class="mb-4">

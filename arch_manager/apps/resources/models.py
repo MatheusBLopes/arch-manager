@@ -30,6 +30,13 @@ class Resource(models.Model):
         on_delete=models.PROTECT,
         related_name="resources",
     )
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resources",
+    )
     short_description = models.CharField(max_length=500)
     detailed_description = models.TextField(blank=True)
     runtime_version = models.CharField(
@@ -38,6 +45,8 @@ class Resource(models.Model):
         blank=True,
         help_text="Ex: python3.12.0, nodejs20.x",
     )
+    repository_url = models.URLField("URL do repositório", blank=True)
+    has_pentest = models.BooleanField("Possui pentest", default=False)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
