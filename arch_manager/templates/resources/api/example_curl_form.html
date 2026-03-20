@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{% if example_curl %}Editar{% else %}Novo{% endif %} Exemplo curl - {{ method.http_method }} {{ endpoint.path }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:api-endpoint-list' slug=resource.slug %}">Endpoints</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:api-endpoint-detail' slug=resource.slug pk=endpoint.pk %}">{{ endpoint.path }}</a></li>
+    <li class="breadcrumb-item active">{% if example_curl %}Editar{% else %}Novo{% endif %} exemplo curl</li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">{% if example_curl %}Editar{% else %}Novo{% endif %} Exemplo curl</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+  <div class="mb-3">
+    <label for="{{ form.label.id_for_label }}" class="form-label">{{ form.label.label }}</label>
+    {{ form.label }}
+    <div class="form-text">Ex: Listar usuários, Criar pedido</div>
+    {% if form.label.errors %}<div class="invalid-feedback d-block">{{ form.label.errors.0 }}</div>{% endif %}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.curl_command.id_for_label }}" class="form-label">{{ form.curl_command.label }}</label>
+    {{ form.curl_command }}
+    {% if form.curl_command.errors %}<div class="invalid-feedback d-block">{{ form.curl_command.errors.0 }}</div>{% endif %}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+    {{ form.order }}
+  </div>
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+    <a href="{% url 'resources:api-endpoint-detail' slug=resource.slug pk=endpoint.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

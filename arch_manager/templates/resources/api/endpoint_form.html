@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{% if endpoint %}Editar{% else %}Novo{% endif %} Endpoint - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:api-endpoint-list' slug=resource.slug %}">Endpoints</a></li>
+    <li class="breadcrumb-item active">{% if endpoint %}Editar{% else %}Novo{% endif %}</li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">{% if endpoint %}Editar{% else %}Novo{% endif %} Endpoint</h1>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+  <div class="mb-3">
+    <label for="{{ form.path.id_for_label }}" class="form-label">{{ form.path.label }}</label>
+    {{ form.path }}
+    {% if form.path.errors %}<div class="invalid-feedback d-block">{{ form.path.errors.0 }}</div>{% endif %}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+    {{ form.description }}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.order.id_for_label }}" class="form-label">{{ form.order.label }}</label>
+    {{ form.order }}
+  </div>
+  <div class="btn-toolbar mt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+    {% if endpoint %}
+      <a href="{% url 'resources:api-endpoint-detail' slug=resource.slug pk=endpoint.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% else %}
+      <a href="{% url 'resources:api-endpoint-list' slug=resource.slug %}" class="btn btn-outline-secondary">Cancelar</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

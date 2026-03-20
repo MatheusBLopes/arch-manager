@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ endpoint.path }} - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'resources:detail' slug=resource.slug %}">{{ resource.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'resources:api-endpoint-list' slug=resource.slug %}">Endpoints</a></li>
+    <li class="breadcrumb-item active"><code>{{ endpoint.path }}</code></li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+  <div>
+    <h1 class="mb-1"><code class="text-primary">{{ endpoint.path }}</code></h1>
+    {% if endpoint.description %}<p class="text-muted mb-0">{{ endpoint.description }}</p>{% endif %}
+  </div>
+  <div class="btn-toolbar">
+    <a href="{% url 'resources:api-method-create' slug=resource.slug endpoint_pk=endpoint.pk %}" class="btn btn-primary">Novo Método</a>
+    <a href="{% url 'resources:api-endpoint-update' slug=resource.slug pk=endpoint.pk %}" class="btn btn-outline-secondary">Editar Endpoint</a>
+    <button type="button" class="btn btn-outline-danger"
+      data-bs-toggle="modal" data-bs-target="#deleteModal"
+      data-delete-url="{% url 'resources:api-endpoint-delete' slug=resource.slug pk=endpoint.pk %}"
+      data-delete-title="Remover endpoint"
+      data-delete-message="Tem certeza que deseja remover o endpoint <strong>{{ endpoint.path }}</strong>? Métodos e dados associados também serão removidos.">Remover</button>
+  </div>
+</div>
+
+{% for method in methods %}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><span class="badge bg-info me-2">{{ method.http_method }}</span> {{ endpoint.path }}</span>
+      <div class="btn-toolbar">
+        <a href="{% url 'resources:api-method-update' slug=resource.slug endpoint_pk=endpoint.pk pk=method.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+        <button type="button" class="btn btn-sm btn-outline-danger"
+          data-bs-toggle="modal" data-bs-target="#deleteModal"
+          data-delete-url="{% url 'resources:api-method-delete' slug=resource.slug endpoint_pk=endpoint.pk pk=method.pk %}"
+          data-delete-title="Remover método"
+          data-delete-message="Tem certeza que deseja remover o método <strong>{{ method.http_method }} {{ endpoint.path }}</strong>?">Remover</button>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if method.description %}<p class="text-muted small">{{ method.description }}</p>{% endif %}
+
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-uppercase small text-muted mb-2">Parâmetros</h6>
+          {% if method.parameters.all %}
+            <table class="table table-sm table-borderless mb-0">
+              {% for p in method.parameters.all %}
+                <tr>
+                  <td><code>{{ p.name }}</code></td>
+                  <td><span class="badge bg-secondary">{{ p.get_param_in_display }}</span></td>
+                  <td>{{ p.param_type|default:"—" }}</td>
+                  <td>{% if p.required %}<span class="badge bg-warning text-dark">obrigatório</span>{% endif %}</td>
+                  <td><a href="{% url 'resources:api-parameter-update' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=p.pk %}" class="btn btn-sm btn-outline-secondary py-0">Editar</a></td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-0" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                      data-delete-url="{% url 'resources:api-parameter-delete' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=p.pk %}"
+                      data-delete-title="Remover parâmetro"
+                      data-delete-message="Remover o parâmetro {{ p.name }}?">Remover</button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </table>
+          {% endif %}
+          <a href="{% url 'resources:api-parameter-create' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk %}" class="btn btn-sm btn-outline-primary mt-1">
+            <i class="bi bi-plus"></i> Parâmetro
+          </a>
+        </div>
+        <div class="col-md-6">
+          <h6 class="text-uppercase small text-muted mb-2">Invoca</h6>
+          {% if method.invocations.all %}
+            <ul class="list-unstyled mb-2">
+              {% for inv in method.invocations.all %}
+                <li>
+                  <a href="{% url 'resources:detail' slug=inv.target_resource.slug %}">{{ inv.target_resource.name }}</a>
+                  <span class="badge bg-secondary">{{ inv.target_resource.resource_type.name }}</span>
+                  <a href="{% url 'resources:api-invocation-update' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=inv.pk %}" class="btn btn-sm btn-outline-secondary py-0">Editar</a>
+                  <button type="button" class="btn btn-sm btn-outline-danger py-0" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                    data-delete-url="{% url 'resources:api-invocation-delete' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=inv.pk %}"
+                    data-delete-title="Remover invocação"
+                    data-delete-message="Remover a invocação para {{ inv.target_resource.name }}?">Remover</button>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          <a href="{% url 'resources:api-invocation-create' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk %}" class="btn btn-sm btn-outline-primary mt-1">
+            <i class="bi bi-plus"></i> Invocação
+          </a>
+        </div>
+      </div>
+
+      <h6 class="text-uppercase small text-muted mt-3 mb-2">Payloads (Request/Response)</h6>
+      {% if method.payloads.all %}
+        <div class="mb-2">
+          {% for pl in method.payloads.all %}
+            <div class="border rounded p-2 mb-2">
+              <span class="badge {% if pl.direction == 'request' %}bg-primary{% else %}bg-success{% endif %}">{{ pl.get_direction_display }}</span>
+              <small class="text-muted">{{ pl.content_type }}</small>
+              <pre class="mb-0 mt-1 small bg-dark p-2 rounded" style="max-height: 120px; overflow: auto;"><code>{{ pl.body|default:"—" }}</code></pre>
+              <a href="{% url 'resources:api-payload-update' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=pl.pk %}" class="btn btn-sm btn-outline-secondary py-0">Editar</a>
+              <button type="button" class="btn btn-sm btn-outline-danger py-0" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                data-delete-url="{% url 'resources:api-payload-delete' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=pl.pk %}"
+                data-delete-title="Remover payload"
+                data-delete-message="Remover este payload?">Remover</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <a href="{% url 'resources:api-payload-create' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk %}" class="btn btn-sm btn-outline-primary mb-3">
+        <i class="bi bi-plus"></i> Payload
+      </a>
+
+      <h6 class="text-uppercase small text-muted mb-2">Exemplos curl</h6>
+      {% if method.example_curls.all %}
+        {% for curl in method.example_curls.all %}
+          <div class="border rounded p-2 mb-2">
+            <strong>{{ curl.label }}</strong>
+            <pre class="mb-0 mt-1 small bg-dark p-2 rounded" style="max-height: 100px; overflow: auto;"><code>{{ curl.curl_command }}</code></pre>
+            <a href="{% url 'resources:api-example-curl-update' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=curl.pk %}" class="btn btn-sm btn-outline-secondary py-0">Editar</a>
+            <button type="button" class="btn btn-sm btn-outline-danger py-0" data-bs-toggle="modal" data-bs-target="#deleteModal"
+              data-delete-url="{% url 'resources:api-example-curl-delete' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk pk=curl.pk %}"
+              data-delete-title="Remover exemplo"
+              data-delete-message="Remover o exemplo {{ curl.label }}?">Remover</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+      <a href="{% url 'resources:api-example-curl-create' slug=resource.slug endpoint_pk=endpoint.pk method_pk=method.pk %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-plus"></i> Exemplo curl
+      </a>
+    </div>
+  </div>
+{% empty %}
+  <div class="alert alert-info">Nenhum método cadastrado. Clique em "Novo Método" para adicionar GET, POST, etc.</div>
+{% endfor %}
+
+<p class="mt-3">
+  <a href="{% url 'resources:api-endpoint-list' slug=resource.slug %}" class="btn btn-outline-secondary">Voltar aos endpoints</a>
+</p>
+{% endblock %}

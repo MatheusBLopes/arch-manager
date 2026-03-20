@@ -63,6 +63,10 @@ class Resource(models.Model):
         """Verifica se o recurso é um banco de dados (RDS, DynamoDB, etc.)."""
         return self.resource_type.slug in ("rds-database", "dynamodb-table")
 
+    def is_api_gateway(self):
+        """Verifica se o recurso é um API Gateway."""
+        return self.resource_type.slug == "api-gateway"
+
 
 class DatabaseTable(models.Model):
     """Tabela de um banco de dados (recurso do tipo database)."""
@@ -190,3 +194,192 @@ class DatabaseQuery(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.resource.name})"
+
+
+# --- API Gateway (recurso tipo api-gateway) ---
+
+HTTP_METHOD_CHOICES = [
+    ("GET", "GET"),
+    ("POST", "POST"),
+    ("PUT", "PUT"),
+    ("PATCH", "PATCH"),
+    ("DELETE", "DELETE"),
+    ("HEAD", "HEAD"),
+    ("OPTIONS", "OPTIONS"),
+]
+
+PARAM_IN_CHOICES = [
+    ("path", "Path"),
+    ("query", "Query"),
+    ("header", "Header"),
+]
+
+PAYLOAD_DIRECTION_CHOICES = [
+    ("request", "Request"),
+    ("response", "Response"),
+]
+
+
+class ApiGatewayEndpoint(models.Model):
+    """Endpoint de um API Gateway (ex: /users, /orders)."""
+
+    resource = models.ForeignKey(
+        Resource,
+        on_delete=models.CASCADE,
+        related_name="api_endpoints",
+    )
+    path = models.CharField("Caminho", max_length=500)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "path"]
+        unique_together = ["resource", "path"]
+        verbose_name = "Endpoint API"
+        verbose_name_plural = "Endpoints API"
+
+    def __str__(self):
+        return f"{self.path} ({self.resource.name})"
+
+
+class ApiGatewayEndpointMethod(models.Model):
+    """Método HTTP de um endpoint (GET, POST, etc)."""
+
+    endpoint = models.ForeignKey(
+        ApiGatewayEndpoint,
+        on_delete=models.CASCADE,
+        related_name="methods",
+    )
+    http_method = models.CharField(
+        "Método HTTP",
+        max_length=10,
+        choices=HTTP_METHOD_CHOICES,
+    )
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "http_method"]
+        unique_together = ["endpoint", "http_method"]
+        verbose_name = "Método do Endpoint"
+        verbose_name_plural = "Métodos do Endpoint"
+
+    def __str__(self):
+        return f"{self.http_method} {self.endpoint.path}"
+
+
+class ApiGatewayParameter(models.Model):
+    """Parâmetro de um método (path, query, header)."""
+
+    method = models.ForeignKey(
+        ApiGatewayEndpointMethod,
+        on_delete=models.CASCADE,
+        related_name="parameters",
+    )
+    name = models.CharField("Nome", max_length=200)
+    param_in = models.CharField(
+        "Local",
+        max_length=10,
+        choices=PARAM_IN_CHOICES,
+    )
+    param_type = models.CharField("Tipo", max_length=50, blank=True)
+    required = models.BooleanField("Obrigatório", default=False)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+        unique_together = ["method", "name", "param_in"]
+        verbose_name = "Parâmetro API"
+        verbose_name_plural = "Parâmetros API"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_param_in_display()})"
+
+
+class ApiGatewayPayload(models.Model):
+    """Payload (body) de request ou response de um método."""
+
+    method = models.ForeignKey(
+        ApiGatewayEndpointMethod,
+        on_delete=models.CASCADE,
+        related_name="payloads",
+    )
+    direction = models.CharField(
+        "Direção",
+        max_length=10,
+        choices=PAYLOAD_DIRECTION_CHOICES,
+    )
+    content_type = models.CharField(
+        "Content-Type",
+        max_length=100,
+        default="application/json",
+    )
+    body = models.TextField("Exemplo/Schema", blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "direction"]
+        verbose_name = "Payload API"
+        verbose_name_plural = "Payloads API"
+
+    def __str__(self):
+        return f"{self.get_direction_display()} ({self.method})"
+
+
+class ApiGatewayInvocation(models.Model):
+    """Recurso invocado por um método (Lambda, SQS, etc)."""
+
+    method = models.ForeignKey(
+        ApiGatewayEndpointMethod,
+        on_delete=models.CASCADE,
+        related_name="invocations",
+    )
+    target_resource = models.ForeignKey(
+        Resource,
+        on_delete=models.CASCADE,
+        related_name="invoked_by_api_methods",
+    )
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "Invocação API"
+        verbose_name_plural = "Invocações API"
+
+    def __str__(self):
+        return f"{self.method} -> {self.target_resource.name}"
+
+
+class ApiGatewayExampleCurl(models.Model):
+    """Exemplo de curl para um método."""
+
+    method = models.ForeignKey(
+        ApiGatewayEndpointMethod,
+        on_delete=models.CASCADE,
+        related_name="example_curls",
+    )
+    label = models.CharField("Rótulo", max_length=200)
+    curl_command = models.TextField("Comando curl")
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "label"]
+        verbose_name = "Exemplo curl"
+        verbose_name_plural = "Exemplos curl"
+
+    def __str__(self):
+        return f"{self.label} ({self.method})"

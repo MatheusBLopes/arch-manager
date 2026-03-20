@@ -4,6 +4,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView
 
 from .forms import (
+    ApiGatewayEndpointForm,
+    ApiGatewayEndpointMethodForm,
+    ApiGatewayExampleCurlForm,
+    ApiGatewayInvocationForm,
+    ApiGatewayParameterForm,
+    ApiGatewayPayloadForm,
     DatabaseQueryForm,
     DatabaseTableForm,
     ResourceForm,
@@ -12,6 +18,12 @@ from .forms import (
     TableRelationshipForm,
 )
 from .models import (
+    ApiGatewayEndpoint,
+    ApiGatewayEndpointMethod,
+    ApiGatewayExampleCurl,
+    ApiGatewayInvocation,
+    ApiGatewayParameter,
+    ApiGatewayPayload,
     DatabaseQuery,
     DatabaseTable,
     Resource,
@@ -427,3 +439,385 @@ def database_query_delete(request, slug, pk):
         messages.success(request, "Query removida.")
         return redirect("resources:database-queries", slug=slug)
     return redirect("resources:database-queries", slug=slug)
+
+
+# --- API Gateway ---
+
+
+def _get_api_gateway_resource(request, slug):
+    """Obtém recurso e verifica se é API Gateway."""
+    resource = get_object_or_404(Resource, slug=slug)
+    if not resource.is_api_gateway():
+        messages.error(request, "Este recurso não é um API Gateway.")
+        return None, redirect("resources:detail", slug=slug)
+    return resource, None
+
+
+def api_endpoint_list(request, slug):
+    """Lista endpoints do API Gateway."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoints = ApiGatewayEndpoint.objects.filter(resource=resource).prefetch_related("methods")
+    return render(request, "resources/api/endpoint_list.html", {"resource": resource, "endpoints": endpoints})
+
+
+def api_endpoint_create(request, slug):
+    """Cria endpoint."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    if request.method == "POST":
+        form = ApiGatewayEndpointForm(request.POST)
+        if form.is_valid():
+            endpoint = form.save(commit=False)
+            endpoint.resource = resource
+            endpoint.save()
+            messages.success(request, "Endpoint criado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint.pk)
+    else:
+        form = ApiGatewayEndpointForm()
+    return render(request, "resources/api/endpoint_form.html", {"form": form, "resource": resource})
+
+
+def api_endpoint_detail(request, slug, pk):
+    """Detalhe do endpoint com métodos e subitens."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=pk, resource=resource)
+    methods = endpoint.methods.prefetch_related(
+        "parameters",
+        "payloads",
+        "invocations__target_resource",
+        "example_curls",
+    ).order_by("order", "http_method")
+    return render(
+        request,
+        "resources/api/endpoint_detail.html",
+        {"resource": resource, "endpoint": endpoint, "methods": methods},
+    )
+
+
+def api_endpoint_update(request, slug, pk):
+    """Edita endpoint."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=pk, resource=resource)
+    if request.method == "POST":
+        form = ApiGatewayEndpointForm(request.POST, instance=endpoint)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Endpoint atualizado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=pk)
+    else:
+        form = ApiGatewayEndpointForm(instance=endpoint)
+    return render(
+        request,
+        "resources/api/endpoint_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint},
+    )
+
+
+def api_endpoint_delete(request, slug, pk):
+    """Remove endpoint."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=pk, resource=resource)
+    if request.method == "POST":
+        endpoint.delete()
+        messages.success(request, "Endpoint removido.")
+        return redirect("resources:api-endpoint-list", slug=slug)
+    return redirect("resources:api-endpoint-list", slug=slug)
+
+
+def api_method_create(request, slug, endpoint_pk):
+    """Cria método em um endpoint."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    if request.method == "POST":
+        form = ApiGatewayEndpointMethodForm(request.POST)
+        if form.is_valid():
+            method = form.save(commit=False)
+            method.endpoint = endpoint
+            method.save()
+            messages.success(request, "Método criado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayEndpointMethodForm()
+    return render(
+        request,
+        "resources/api/method_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint},
+    )
+
+
+def api_method_update(request, slug, endpoint_pk, pk):
+    """Edita método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=pk, endpoint=endpoint)
+    if request.method == "POST":
+        form = ApiGatewayEndpointMethodForm(request.POST, instance=method)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Método atualizado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayEndpointMethodForm(instance=method)
+    return render(
+        request,
+        "resources/api/method_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method},
+    )
+
+
+def api_method_delete(request, slug, endpoint_pk, pk):
+    """Remove método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=pk, endpoint=endpoint)
+    if request.method == "POST":
+        method.delete()
+        messages.success(request, "Método removido.")
+        return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+
+
+def api_parameter_create(request, slug, endpoint_pk, method_pk):
+    """Cria parâmetro em um método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    if request.method == "POST":
+        form = ApiGatewayParameterForm(request.POST)
+        if form.is_valid():
+            param = form.save(commit=False)
+            param.method = method
+            param.save()
+            messages.success(request, "Parâmetro criado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayParameterForm()
+    return render(
+        request,
+        "resources/api/parameter_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method},
+    )
+
+
+def api_parameter_update(request, slug, endpoint_pk, method_pk, pk):
+    """Edita parâmetro."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    param = get_object_or_404(ApiGatewayParameter, pk=pk, method=method)
+    if request.method == "POST":
+        form = ApiGatewayParameterForm(request.POST, instance=param)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parâmetro atualizado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayParameterForm(instance=param)
+    return render(
+        request,
+        "resources/api/parameter_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method, "parameter": param},
+    )
+
+
+def api_parameter_delete(request, slug, endpoint_pk, method_pk, pk):
+    """Remove parâmetro."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    param = get_object_or_404(ApiGatewayParameter, pk=pk, method__endpoint__resource__slug=slug)
+    if request.method == "POST":
+        param.delete()
+        messages.success(request, "Parâmetro removido.")
+        return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+
+
+def api_payload_create(request, slug, endpoint_pk, method_pk):
+    """Cria payload em um método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    if request.method == "POST":
+        form = ApiGatewayPayloadForm(request.POST)
+        if form.is_valid():
+            payload = form.save(commit=False)
+            payload.method = method
+            payload.save()
+            messages.success(request, "Payload criado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayPayloadForm()
+    return render(
+        request,
+        "resources/api/payload_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method},
+    )
+
+
+def api_payload_update(request, slug, endpoint_pk, method_pk, pk):
+    """Edita payload."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    payload = get_object_or_404(ApiGatewayPayload, pk=pk, method=method)
+    if request.method == "POST":
+        form = ApiGatewayPayloadForm(request.POST, instance=payload)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Payload atualizado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayPayloadForm(instance=payload)
+    return render(
+        request,
+        "resources/api/payload_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method, "payload": payload},
+    )
+
+
+def api_payload_delete(request, slug, endpoint_pk, method_pk, pk):
+    """Remove payload."""
+    payload = get_object_or_404(ApiGatewayPayload, pk=pk, method__endpoint__resource__slug=slug)
+    if request.method == "POST":
+        payload.delete()
+        messages.success(request, "Payload removido.")
+        return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+
+
+def api_invocation_create(request, slug, endpoint_pk, method_pk):
+    """Cria invocação em um método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    if request.method == "POST":
+        form = ApiGatewayInvocationForm(request.POST, resource=resource)
+        if form.is_valid():
+            inv = form.save(commit=False)
+            inv.method = method
+            inv.save()
+            messages.success(request, "Invocação cadastrada.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayInvocationForm(resource=resource)
+    return render(
+        request,
+        "resources/api/invocation_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method},
+    )
+
+
+def api_invocation_update(request, slug, endpoint_pk, method_pk, pk):
+    """Edita invocação."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    inv = get_object_or_404(ApiGatewayInvocation, pk=pk, method=method)
+    if request.method == "POST":
+        form = ApiGatewayInvocationForm(request.POST, instance=inv, resource=resource)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Invocação atualizada.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayInvocationForm(instance=inv, resource=resource)
+    return render(
+        request,
+        "resources/api/invocation_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method, "invocation": inv},
+    )
+
+
+def api_invocation_delete(request, slug, endpoint_pk, method_pk, pk):
+    """Remove invocação."""
+    inv = get_object_or_404(ApiGatewayInvocation, pk=pk, method__endpoint__resource__slug=slug)
+    if request.method == "POST":
+        inv.delete()
+        messages.success(request, "Invocação removida.")
+        return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+
+
+def api_example_curl_create(request, slug, endpoint_pk, method_pk):
+    """Cria exemplo curl em um método."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    if request.method == "POST":
+        form = ApiGatewayExampleCurlForm(request.POST)
+        if form.is_valid():
+            curl = form.save(commit=False)
+            curl.method = method
+            curl.save()
+            messages.success(request, "Exemplo curl criado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayExampleCurlForm()
+    return render(
+        request,
+        "resources/api/example_curl_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method},
+    )
+
+
+def api_example_curl_update(request, slug, endpoint_pk, method_pk, pk):
+    """Edita exemplo curl."""
+    resource, err = _get_api_gateway_resource(request, slug)
+    if err:
+        return err
+    endpoint = get_object_or_404(ApiGatewayEndpoint, pk=endpoint_pk, resource=resource)
+    method = get_object_or_404(ApiGatewayEndpointMethod, pk=method_pk, endpoint=endpoint)
+    curl = get_object_or_404(ApiGatewayExampleCurl, pk=pk, method=method)
+    if request.method == "POST":
+        form = ApiGatewayExampleCurlForm(request.POST, instance=curl)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Exemplo curl atualizado.")
+            return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    else:
+        form = ApiGatewayExampleCurlForm(instance=curl)
+    return render(
+        request,
+        "resources/api/example_curl_form.html",
+        {"form": form, "resource": resource, "endpoint": endpoint, "method": method, "example_curl": curl},
+    )
+
+
+def api_example_curl_delete(request, slug, endpoint_pk, method_pk, pk):
+    """Remove exemplo curl."""
+    curl = get_object_or_404(ApiGatewayExampleCurl, pk=pk, method__endpoint__resource__slug=slug)
+    if request.method == "POST":
+        curl.delete()
+        messages.success(request, "Exemplo curl removido.")
+        return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)
+    return redirect("resources:api-endpoint-detail", slug=slug, pk=endpoint_pk)

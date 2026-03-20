@@ -5,6 +5,12 @@ from django.utils.text import slugify
 from arch_manager.apps.projects.models import Project
 
 from .models import (
+    ApiGatewayEndpoint,
+    ApiGatewayEndpointMethod,
+    ApiGatewayExampleCurl,
+    ApiGatewayInvocation,
+    ApiGatewayParameter,
+    ApiGatewayPayload,
     DatabaseQuery,
     DatabaseTable,
     Resource,
@@ -14,12 +20,28 @@ from .models import (
 )
 
 
+def _get_unique_slug(model, name, instance=None):
+    """Gera slug único a partir do nome."""
+    base = slugify(name) or "untitled"
+    slug = base
+    counter = 1
+    qs = model.objects.filter(slug=slug)
+    if instance and instance.pk:
+        qs = qs.exclude(pk=instance.pk)
+    while qs.exists():
+        slug = f"{base}-{counter}"
+        counter += 1
+        qs = model.objects.filter(slug=slug)
+        if instance and instance.pk:
+            qs = qs.exclude(pk=instance.pk)
+    return slug
+
+
 class ResourceForm(forms.ModelForm):
     class Meta:
         model = Resource
         fields = [
             "name",
-            "slug",
             "resource_type",
             "project",
             "short_description",
@@ -31,7 +53,6 @@ class ResourceForm(forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "slug": forms.TextInput(attrs={"class": "form-control"}),
             "resource_type": forms.Select(attrs={"class": "form-select"}),
             "project": forms.Select(attrs={"class": "form-select"}),
             "short_description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
@@ -53,29 +74,30 @@ class ResourceForm(forms.ModelForm):
         self.fields["project"].queryset = Project.objects.all()
         self.fields["project"].required = False
 
-    def clean_slug(self):
-        slug = self.cleaned_data.get("slug")
-        if not slug and self.cleaned_data.get("name"):
-            slug = slugify(self.cleaned_data["name"])
-        return slug or ""
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.slug = _get_unique_slug(Resource, instance.name, instance)
+        if commit:
+            instance.save()
+        return instance
 
 
 class ResourceTypeForm(forms.ModelForm):
     class Meta:
         model = ResourceType
-        fields = ["name", "slug", "description", "is_active"]
+        fields = ["name", "description", "is_active"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "slug": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
-    def clean_slug(self):
-        slug = self.cleaned_data.get("slug")
-        if not slug:
-            slug = slugify(self.cleaned_data.get("name", ""))
-        return slug
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.slug = _get_unique_slug(ResourceType, instance.name, instance)
+        if commit:
+            instance.save()
+        return instance
 
 
 class DatabaseTableForm(forms.ModelForm):
@@ -147,5 +169,84 @@ class DatabaseQueryForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Listar usuários ativos"}),
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control", "placeholder": "Descreva quando e por que usar esta query"}),
             "query_text": forms.Textarea(attrs={"rows": 6, "class": "form-control font-monospace", "placeholder": "SELECT * FROM ..."}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+# --- API Gateway forms ---
+
+
+class ApiGatewayEndpointForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayEndpoint
+        fields = ["path", "description", "order"]
+        widgets = {
+            "path": forms.TextInput(attrs={"class": "form-control", "placeholder": "/users, /orders/{id}"}),
+            "description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+class ApiGatewayEndpointMethodForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayEndpointMethod
+        fields = ["http_method", "description", "order"]
+        widgets = {
+            "http_method": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+class ApiGatewayParameterForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayParameter
+        fields = ["name", "param_in", "param_type", "required", "description", "order"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "param_in": forms.Select(attrs={"class": "form-select"}),
+            "param_type": forms.TextInput(attrs={"class": "form-control", "placeholder": "string, integer, boolean"}),
+            "required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+class ApiGatewayPayloadForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayPayload
+        fields = ["direction", "content_type", "body", "order"]
+        widgets = {
+            "direction": forms.Select(attrs={"class": "form-select"}),
+            "content_type": forms.TextInput(attrs={"class": "form-control", "placeholder": "application/json"}),
+            "body": forms.Textarea(attrs={"rows": 8, "class": "form-control font-monospace", "placeholder": '{"key": "value"}'}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+class ApiGatewayInvocationForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayInvocation
+        fields = ["target_resource", "description", "order"]
+        widgets = {
+            "target_resource": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, resource=None, **kwargs):
+        res = kwargs.pop("resource", None) or resource
+        super().__init__(*args, **kwargs)
+        if res:
+            self.fields["target_resource"].queryset = Resource.objects.exclude(pk=res.pk).select_related("resource_type").order_by("name")
+
+
+class ApiGatewayExampleCurlForm(forms.ModelForm):
+    class Meta:
+        model = ApiGatewayExampleCurl
+        fields = ["label", "curl_command", "order"]
+        widgets = {
+            "label": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Listar usuários"}),
+            "curl_command": forms.Textarea(attrs={"rows": 4, "class": "form-control font-monospace", "placeholder": "curl -X GET https://api.example.com/users"}),
             "order": forms.NumberInput(attrs={"class": "form-control"}),
         }

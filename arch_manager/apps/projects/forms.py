@@ -4,23 +4,40 @@ from django.utils.text import slugify
 from .models import Project, ProjectDocumentation
 
 
+def _get_unique_slug(model, name, instance=None):
+    """Gera slug único a partir do nome."""
+    base = slugify(name) or "untitled"
+    slug = base
+    counter = 1
+    qs = model.objects.filter(slug=slug)
+    if instance and instance.pk:
+        qs = qs.exclude(pk=instance.pk)
+    while qs.exists():
+        slug = f"{base}-{counter}"
+        counter += 1
+        qs = model.objects.filter(slug=slug)
+        if instance and instance.pk:
+            qs = qs.exclude(pk=instance.pk)
+    return slug
+
+
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ["name", "slug", "short_description"]
+        fields = ["name", "short_description"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "slug": forms.TextInput(attrs={"class": "form-control"}),
             "short_description": forms.Textarea(
                 attrs={"rows": 3, "class": "form-control"}
             ),
         }
 
-    def clean_slug(self):
-        slug = self.cleaned_data.get("slug")
-        if not slug and self.cleaned_data.get("name"):
-            slug = slugify(self.cleaned_data["name"])
-        return slug or ""
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.slug = _get_unique_slug(Project, instance.name, instance)
+        if commit:
+            instance.save()
+        return instance
 
 
 class ProjectDocumentationForm(forms.ModelForm):
