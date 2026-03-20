@@ -22,6 +22,11 @@
               <i class="bi bi-list-ul"></i> Ver recursos ({{ rt.resource_count }})
             </a>
             <a href="{% url 'resources:type-update' slug=rt.slug %}" class="btn btn-outline-secondary btn-sm" title="Editar tipo"><i class="bi bi-pencil"></i></a>
+            <button type="button" class="btn btn-outline-danger btn-sm" title="Excluir tipo"
+              data-bs-toggle="modal" data-bs-target="#deleteModal"
+              data-delete-url="{% url 'resources:type-delete' slug=rt.slug %}"
+              data-delete-title="Excluir tipo de recurso"
+              data-delete-message="Tem certeza que deseja excluir o tipo <strong>{{ rt.name }}</strong>? Só é possível se não houver recursos vinculados."><i class="bi bi-trash"></i></button>
           </div>
         </div>
       </div>

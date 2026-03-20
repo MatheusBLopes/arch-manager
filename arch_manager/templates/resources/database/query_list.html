@@ -28,7 +28,11 @@
         </div>
         <div class="btn-toolbar ms-2">
           <a href="{% url 'resources:database-query-update' slug=resource.slug pk=query.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
-          <a href="{% url 'resources:database-query-delete' slug=resource.slug pk=query.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+          <button type="button" class="btn btn-sm btn-outline-danger"
+            data-bs-toggle="modal" data-bs-target="#deleteModal"
+            data-delete-url="{% url 'resources:database-query-delete' slug=resource.slug pk=query.pk %}"
+            data-delete-title="Remover query"
+            data-delete-message="Tem certeza que deseja remover a query <strong>{{ query.name }}</strong>?">Remover</button>
         </div>
       </div>
     </div>

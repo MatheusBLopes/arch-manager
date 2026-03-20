@@ -29,7 +29,11 @@
       </div>
       <div class="btn-toolbar">
         <a href="{% url 'resources:database-table-update' slug=resource.slug pk=table.pk %}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation()">Editar</a>
-        <a href="{% url 'resources:database-table-delete' slug=resource.slug pk=table.pk %}" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation()">Remover</a>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();"
+          data-bs-toggle="modal" data-bs-target="#deleteModal"
+          data-delete-url="{% url 'resources:database-table-delete' slug=resource.slug pk=table.pk %}"
+          data-delete-title="Remover tabela"
+          data-delete-message="Tem certeza que deseja remover a tabela <strong>{{ table.name }}</strong>? Campos e relacionamentos associados também serão removidos.">Remover</button>
       </div>
     </a>
   {% empty %}

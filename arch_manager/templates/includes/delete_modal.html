@@ -1,0 +1,46 @@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" id="deleteModalLabel">Confirmar exclusão</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form id="deleteForm" method="post" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p id="deleteModalBody" class="mb-0"></p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Sim, excluir
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('deleteModal');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function(event) {
+      var button = event.relatedTarget;
+      if (button) {
+        var url = button.getAttribute('data-delete-url');
+        var message = button.getAttribute('data-delete-message');
+        var title = button.getAttribute('data-delete-title');
+        var form = document.getElementById('deleteForm');
+        var body = document.getElementById('deleteModalBody');
+        if (form && body) {
+          form.action = url || '';
+          body.innerHTML = message || 'Tem certeza que deseja excluir?';
+        }
+        var titleEl = modal.querySelector('.modal-title');
+        if (titleEl) titleEl.textContent = title || 'Confirmar exclusão';
+      }
+    });
+  }
+});
+</script>

@@ -119,6 +119,17 @@ def resource_update(request, slug):
     return render(request, "resources/resource_form.html", {"form": form, "resource": resource})
 
 
+def resource_delete(request, slug):
+    """Exclusão de recurso."""
+    resource = get_object_or_404(Resource, slug=slug)
+    if request.method == "POST":
+        resource.delete()
+        messages.success(request, "Recurso excluído com sucesso.")
+        return redirect("resources:list")
+    messages.error(request, "Método inválido.")
+    return redirect("resources:detail", slug=slug)
+
+
 def resource_type_list(request):
     """Listagem de tipos de recurso."""
     types = ResourceType.objects.filter(is_active=True).annotate(
@@ -160,6 +171,23 @@ def resource_type_update(request, slug):
         "resources/resource_type_form.html",
         {"form": form, "resource_type": resource_type},
     )
+
+
+def resource_type_delete(request, slug):
+    """Exclusão de tipo de recurso (apenas se não houver recursos vinculados)."""
+    resource_type = get_object_or_404(ResourceType, slug=slug)
+    if request.method == "POST":
+        if resource_type.resources.exists():
+            messages.error(
+                request,
+                f"Não é possível excluir o tipo \"{resource_type.name}\": existem recursos vinculados.",
+            )
+            return redirect("resources:type-list")
+        resource_type.delete()
+        messages.success(request, "Tipo de recurso excluído com sucesso.")
+        return redirect("resources:type-list")
+    messages.error(request, "Método inválido.")
+    return redirect("resources:type-list")
 
 
 def _get_database_resource(request, slug):
@@ -225,7 +253,7 @@ def database_table_delete(request, slug, pk):
         table.delete()
         messages.success(request, "Tabela removida.")
         return redirect("resources:database-tables", slug=slug)
-    return render(request, "resources/database/table_confirm_delete.html", {"resource": resource, "table": table})
+    return redirect("resources:database-tables", slug=slug)
 
 
 def database_table_detail(request, slug, pk):
@@ -286,7 +314,7 @@ def database_field_delete(request, slug, table_pk, pk):
         field.delete()
         messages.success(request, "Campo removido.")
         return redirect("resources:database-table-detail", slug=slug, pk=table_pk)
-    return render(request, "resources/database/field_confirm_delete.html", {"resource": resource, "table": table, "field": field})
+    return redirect("resources:database-table-detail", slug=slug, pk=table_pk)
 
 
 def database_relationship_list(request, slug):
@@ -341,7 +369,7 @@ def database_relationship_delete(request, slug, pk):
         rel.delete()
         messages.success(request, "Relacionamento removido.")
         return redirect("resources:database-relationships", slug=slug)
-    return render(request, "resources/database/relationship_confirm_delete.html", {"resource": resource, "relationship": rel})
+    return redirect("resources:database-relationships", slug=slug)
 
 
 def database_query_list(request, slug):
@@ -398,4 +426,4 @@ def database_query_delete(request, slug, pk):
         query.delete()
         messages.success(request, "Query removida.")
         return redirect("resources:database-queries", slug=slug)
-    return render(request, "resources/database/query_confirm_delete.html", {"resource": resource, "query": query})
+    return redirect("resources:database-queries", slug=slug)

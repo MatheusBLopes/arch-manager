@@ -34,6 +34,11 @@
           <td>{{ resource.runtime_version|default:"—" }}</td>
           <td class="text-end">
             <a href="{% url 'resources:update' slug=resource.slug %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Excluir"
+              data-bs-toggle="modal" data-bs-target="#deleteModal"
+              data-delete-url="{% url 'resources:delete' slug=resource.slug %}"
+              data-delete-title="Excluir recurso"
+              data-delete-message="Tem certeza que deseja excluir o recurso <strong>{{ resource.name }}</strong>? Esta ação não pode ser desfeita."><i class="bi bi-trash"></i></button>
           </td>
         </tr>
       {% empty %}

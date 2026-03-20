@@ -30,7 +30,11 @@
       </div>
       <div class="btn-toolbar">
         <a href="{% url 'resources:database-relationship-update' slug=resource.slug pk=rel.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
-        <a href="{% url 'resources:database-relationship-delete' slug=resource.slug pk=rel.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+        <button type="button" class="btn btn-sm btn-outline-danger"
+          data-bs-toggle="modal" data-bs-target="#deleteModal"
+          data-delete-url="{% url 'resources:database-relationship-delete' slug=resource.slug pk=rel.pk %}"
+          data-delete-title="Remover relacionamento"
+          data-delete-message="Tem certeza que deseja remover o relacionamento <strong>{{ rel.source_table.name }}</strong> <span class=\"badge bg-info\">{{ rel.get_relationship_type_display }}</span> <strong>{{ rel.target_table.name }}</strong>?">Remover</button>
       </div>
     </div>
   {% empty %}

@@ -54,15 +54,11 @@ def relationship_update(request, pk):
 
 
 def relationship_delete(request, pk):
-    """Remoção de relacionamento com confirmação."""
+    """Remoção de relacionamento."""
     relationship = get_object_or_404(ResourceRelationship, pk=pk)
     if request.method == "POST":
         source_slug = relationship.source_resource.slug
         relationship.delete()
         messages.success(request, "Relacionamento removido.")
         return redirect("resources:detail", slug=source_slug)
-    return render(
-        request,
-        "relationships/relationship_confirm_delete.html",
-        {"relationship": relationship},
-    )
+    return redirect("resources:detail", slug=relationship.source_resource.slug)

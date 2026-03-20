@@ -16,9 +16,13 @@
     <a href="{% url 'projects:docs-edit' slug=project.slug %}" class="btn btn-outline-secondary">
       <i class="bi bi-file-text"></i> {% if project.documentation %}Documentação{% else %}Criar Doc{% endif %}
     </a>
-    <a href="{% url 'projects:delete' slug=project.slug %}" class="btn btn-outline-danger">
+    <button type="button" class="btn btn-outline-danger"
+      data-bs-toggle="modal" data-bs-target="#deleteModal"
+      data-delete-url="{% url 'projects:delete' slug=project.slug %}"
+      data-delete-title="Excluir projeto"
+      data-delete-message="Tem certeza que deseja excluir o projeto <strong>{{ project.name }}</strong>? Os recursos vinculados não serão excluídos, mas ficarão sem projeto.">
       <i class="bi bi-trash"></i> Excluir
-    </a>
+    </button>
   </div>
 </div>
 

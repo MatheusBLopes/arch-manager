@@ -28,6 +28,13 @@
     <a href="{% url 'relationships:create-for-resource' resource_slug=resource.slug %}" class="btn btn-outline-success">
       <i class="bi bi-link-45deg"></i> Relacionar
     </a>
+    <button type="button" class="btn btn-outline-danger"
+      data-bs-toggle="modal" data-bs-target="#deleteModal"
+      data-delete-url="{% url 'resources:delete' slug=resource.slug %}"
+      data-delete-title="Excluir recurso"
+      data-delete-message="Tem certeza que deseja excluir o recurso <strong>{{ resource.name }}</strong>? Esta ação não pode ser desfeita.">
+      <i class="bi bi-trash"></i> Excluir
+    </button>
     {% if resource.is_database %}
       <a href="{% url 'resources:database-tables' slug=resource.slug %}" class="btn btn-outline-info">
         <i class="bi bi-table"></i> Schema
@@ -73,7 +80,11 @@
               </span>
               <div class="btn-group btn-group-sm">
                 <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
-                <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-outline-danger" title="Remover"><i class="bi bi-trash"></i></a>
+                <button type="button" class="btn btn-outline-danger" title="Remover"
+                  data-bs-toggle="modal" data-bs-target="#deleteModal"
+                  data-delete-url="{% url 'relationships:delete' pk=rel.pk %}"
+                  data-delete-title="Remover relacionamento"
+                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name }}</strong> <span class=\"badge bg-info\">{{ rel.get_relationship_type_display }}</span> <strong>{{ rel.target_resource.name }}</strong>?"><i class="bi bi-trash"></i></button>
               </div>
             </li>
           {% endif %}
@@ -121,7 +132,11 @@
               </span>
               <div class="btn-group btn-group-sm">
                 <a href="{% url 'relationships:update' pk=rel.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
-                <a href="{% url 'relationships:delete' pk=rel.pk %}" class="btn btn-outline-danger" title="Remover"><i class="bi bi-trash"></i></a>
+                <button type="button" class="btn btn-outline-danger" title="Remover"
+                  data-bs-toggle="modal" data-bs-target="#deleteModal"
+                  data-delete-url="{% url 'relationships:delete' pk=rel.pk %}"
+                  data-delete-title="Remover relacionamento"
+                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name }}</strong> <span class=\"badge bg-info\">{{ rel.get_relationship_type_display }}</span> <strong>{{ rel.target_resource.name }}</strong>?"><i class="bi bi-trash"></i></button>
               </div>
             </li>
           {% endif %}

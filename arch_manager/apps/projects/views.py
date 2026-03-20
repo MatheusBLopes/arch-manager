@@ -65,11 +65,7 @@ def project_delete(request, slug):
         project.delete()
         messages.success(request, "Projeto excluído com sucesso.")
         return redirect("projects:list")
-    return render(
-        request,
-        "projects/project_confirm_delete.html",
-        {"project": project},
-    )
+    return redirect("projects:detail", slug=slug)
 
 
 def documentation_edit(request, slug):

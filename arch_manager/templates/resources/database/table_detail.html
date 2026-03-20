@@ -19,7 +19,11 @@
   <div class="btn-toolbar">
     <a href="{% url 'resources:database-field-create' slug=resource.slug table_pk=table.pk %}" class="btn btn-primary">Novo Campo</a>
     <a href="{% url 'resources:database-table-update' slug=resource.slug pk=table.pk %}" class="btn btn-outline-secondary">Editar Tabela</a>
-    <a href="{% url 'resources:database-table-delete' slug=resource.slug pk=table.pk %}" class="btn btn-outline-danger">Remover</a>
+    <button type="button" class="btn btn-outline-danger"
+      data-bs-toggle="modal" data-bs-target="#deleteModal"
+      data-delete-url="{% url 'resources:database-table-delete' slug=resource.slug pk=table.pk %}"
+      data-delete-title="Remover tabela"
+      data-delete-message="Tem certeza que deseja remover a tabela <strong>{{ table.name }}</strong>? Campos e relacionamentos associados também serão removidos.">Remover</button>
   </div>
 </div>
 
@@ -47,7 +51,11 @@
             <td>{{ field.description|truncatewords:10|default:"—" }}</td>
             <td class="text-end">
               <a href="{% url 'resources:database-field-update' slug=resource.slug table_pk=table.pk pk=field.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
-              <a href="{% url 'resources:database-field-delete' slug=resource.slug table_pk=table.pk pk=field.pk %}" class="btn btn-sm btn-outline-danger">Remover</a>
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                data-delete-url="{% url 'resources:database-field-delete' slug=resource.slug table_pk=table.pk pk=field.pk %}"
+                data-delete-title="Remover campo"
+                data-delete-message="Tem certeza que deseja remover o campo <strong>{{ field.name }}</strong> da tabela {{ table.name }}?">Remover</button>
             </td>
           </tr>
         {% empty %}
