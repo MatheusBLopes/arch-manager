@@ -52,16 +52,6 @@
 
   <div class="row">
     <div class="col-md-6 mb-3">
-      <label for="{{ form.runtime_version.id_for_label }}" class="form-label">{{ form.runtime_version.label }}</label>
-      {{ form.runtime_version }}
-      {% if form.runtime_version.help_text %}
-        <div class="form-text">{{ form.runtime_version.help_text }}</div>
-      {% endif %}
-      {% if form.runtime_version.errors %}
-        <div class="invalid-feedback d-block">{{ form.runtime_version.errors.0 }}</div>
-      {% endif %}
-    </div>
-    <div class="col-md-6 mb-3">
       <label for="{{ form.repository_url.id_for_label }}" class="form-label">{{ form.repository_url.label }}</label>
       {{ form.repository_url }}
       {% if form.repository_url.errors %}
@@ -69,6 +59,61 @@
       {% endif %}
     </div>
   </div>
+
+  {% comment %}Seção Lambda - exibida quando o tipo é Lambda (via JS no create, ou quando resource.is_lambda no update){% endcomment %}
+  <div id="lambda-details-section" class="card mb-4 {% if not resource or not resource.is_lambda %}d-none{% endif %}">
+    <div class="card-header">
+      <i class="bi bi-cpu"></i> Detalhes da Lambda
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="{{ lambda_form.runtime_version.id_for_label }}" class="form-label">{{ lambda_form.runtime_version.label }}</label>
+        {{ lambda_form.runtime_version }}
+        {% if lambda_form.runtime_version.help_text %}
+          <div class="form-text">{{ lambda_form.runtime_version.help_text }}</div>
+        {% endif %}
+        {% if lambda_form.runtime_version.errors %}
+          <div class="invalid-feedback d-block">{{ lambda_form.runtime_version.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        <label for="{{ lambda_form.example_invocation_payload.id_for_label }}" class="form-label">{{ lambda_form.example_invocation_payload.label }}</label>
+        {{ lambda_form.example_invocation_payload }}
+        {% if lambda_form.example_invocation_payload.help_text %}
+          <div class="form-text">{{ lambda_form.example_invocation_payload.help_text }}</div>
+        {% endif %}
+        {% if lambda_form.example_invocation_payload.errors %}
+          <div class="invalid-feedback d-block">{{ lambda_form.example_invocation_payload.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        <label for="{{ lambda_form.mermaid_diagram.id_for_label }}" class="form-label">{{ lambda_form.mermaid_diagram.label }}</label>
+        {{ lambda_form.mermaid_diagram }}
+        {% if lambda_form.mermaid_diagram.help_text %}
+          <div class="form-text">{{ lambda_form.mermaid_diagram.help_text }}</div>
+        {% endif %}
+        {% if lambda_form.mermaid_diagram.errors %}
+          <div class="invalid-feedback d-block">{{ lambda_form.mermaid_diagram.errors.0 }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const typeSelect = document.getElementById('id_resource_type');
+      const lambdaSection = document.getElementById('lambda-details-section');
+      const lambdaTypePk = {{ lambda_type_pk|default:"null" }};
+      function toggleLambda() {
+        const isLambda = lambdaTypePk && typeSelect.value == String(lambdaTypePk);
+        lambdaSection.classList.toggle('d-none', !isLambda);
+      }
+      if (typeSelect) {
+        typeSelect.addEventListener('change', toggleLambda);
+        toggleLambda();
+      }
+    });
+  </script>
 
   <div class="mb-3">
     <div class="form-check">

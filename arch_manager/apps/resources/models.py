@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ResourceType(models.Model):
@@ -39,12 +40,6 @@ class Resource(models.Model):
     )
     short_description = models.CharField(max_length=500)
     detailed_description = models.TextField(blank=True)
-    runtime_version = models.CharField(
-        "Versão do runtime",
-        max_length=100,
-        blank=True,
-        help_text="Ex: python3.12.0, nodejs20.x",
-    )
     repository_url = models.URLField("URL do repositório", blank=True)
     has_pentest = models.BooleanField("Possui pentest", default=False)
     notes = models.TextField(blank=True)
@@ -66,6 +61,52 @@ class Resource(models.Model):
     def is_api_gateway(self):
         """Verifica se o recurso é um API Gateway."""
         return self.resource_type.slug == "api-gateway"
+
+    def is_lambda(self):
+        """Verifica se o recurso é uma Lambda."""
+        return self.resource_type.slug == "lambda"
+
+    def get_lambda_details(self):
+        """Retorna LambdaDetails se existir, None caso contrário."""
+        try:
+            return self.lambda_details
+        except ObjectDoesNotExist:
+            return None
+
+
+class LambdaDetails(models.Model):
+    """Detalhes específicos de recursos do tipo Lambda."""
+
+    resource = models.OneToOneField(
+        Resource,
+        on_delete=models.CASCADE,
+        related_name="lambda_details",
+    )
+    runtime_version = models.CharField(
+        "Versão do runtime",
+        max_length=100,
+        blank=True,
+        help_text="Ex: python3.12.0, nodejs20.x",
+    )
+    example_invocation_payload = models.TextField(
+        "Payload de exemplo para invocação",
+        blank=True,
+        help_text="JSON de exemplo para invocar a Lambda (teste direto, EventBridge, etc.)",
+    )
+    mermaid_diagram = models.TextField(
+        "Diagrama Mermaid de processo",
+        blank=True,
+        help_text="Diagrama Mermaid (flowchart, sequence, etc.) do fluxo de execução da Lambda",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Detalhes Lambda"
+        verbose_name_plural = "Detalhes Lambda"
+
+    def __str__(self):
+        return f"Lambda: {self.resource.name}"
 
 
 class DatabaseTable(models.Model):

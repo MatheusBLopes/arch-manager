@@ -528,7 +528,7 @@ def build_pdf_buffer():
             pass
 
         # Recursos do projeto
-        resources = project.resources.select_related("resource_type").prefetch_related(
+        resources = project.resources.select_related("resource_type", "lambda_details").prefetch_related(
             "documentation",
             "outgoing_relationships__target_resource",
             "incoming_relationships__source_resource",
@@ -549,7 +549,7 @@ def build_pdf_buffer():
         story.append(Spacer(1, 1 * cm))
 
     # Outros (recursos sem projeto)
-    others = Resource.objects.filter(project__isnull=True).select_related("resource_type").prefetch_related(
+    others = Resource.objects.filter(project__isnull=True).select_related("resource_type", "lambda_details").prefetch_related(
         "documentation",
         "outgoing_relationships__target_resource",
         "incoming_relationships__source_resource",
@@ -604,10 +604,12 @@ def _add_resource_content(
             value_style,
         ))
 
+    ld = resource.get_lambda_details()
+
     # Metadados
     meta_items = []
-    if resource.runtime_version:
-        meta_items.append(("Runtime", resource.runtime_version))
+    if ld and ld.runtime_version:
+        meta_items.append(("Runtime", ld.runtime_version))
     if resource.repository_url:
         meta_items.append(("Repositório", resource.repository_url))
     if resource.has_pentest:
@@ -638,6 +640,18 @@ def _add_resource_content(
             story.extend(_markdown_to_flowables(doc.markdown_content, md_styles, code_style))
     except ResourceDocumentation.DoesNotExist:
         pass
+
+    # Lambda (detalhes específicos)
+    if resource.is_lambda() and ld:
+        if ld.example_invocation_payload or ld.mermaid_diagram:
+            story.append(thin_separator)
+            story.append(Paragraph("Detalhes Lambda", section_header_style))
+            if ld.example_invocation_payload:
+                story.append(Paragraph('<b>Payload de exemplo:</b>', label_style))
+                story.append(_make_code_block(ld.example_invocation_payload, "json", code_style))
+            if ld.mermaid_diagram:
+                story.append(Paragraph('<b>Diagrama de processo:</b>', label_style))
+                story.append(_make_code_block(ld.mermaid_diagram, "other", code_style))
 
     # Relacionamentos
     outgoing = resource.outgoing_relationships.filter(is_active=True).select_related("target_resource")
@@ -677,12 +691,45 @@ def _add_resource_content(
                 ))
                 if table.description:
                     story.append(Paragraph(f'<i>{escape(table.description)}</i>', value_style))
-                for field in table.fields.all():
-                    pk = ' <font color="#cc6600">(PK)</font>' if field.is_primary_key else ""
-                    story.append(Paragraph(
-                        f'  • {escape(field.name)}: <font name="Courier">{field.data_type or "—"}</font>{pk}',
-                        value_style,
-                    ))
+                fields = list(table.fields.all())
+                if fields:
+                    header_style = ParagraphStyle(
+                        name="TableHeader",
+                        parent=body_style,
+                        fontName="Helvetica-Bold",
+                        backColor=colors.HexColor("#d0e0f0"),
+                        borderPadding=4,
+                    )
+                    data = [
+                        [
+                            Paragraph("Nome", header_style),
+                            Paragraph("Tipo", header_style),
+                            Paragraph("PK", header_style),
+                            Paragraph("Nullable", header_style),
+                            Paragraph("Descrição", header_style),
+                        ]
+                    ]
+                    for field in fields:
+                        data.append([
+                            Paragraph(f'<font name="Courier">{escape(field.name)}</font>', value_style),
+                            Paragraph(f'<font name="Courier">{escape(field.data_type or "—")}</font>', value_style),
+                            Paragraph("Sim" if field.is_primary_key else "—", value_style),
+                            Paragraph("Sim" if field.is_nullable else "Não", value_style),
+                            Paragraph(escape((field.description or "")[:50] + ("..." if len(field.description or "") > 50 else "")), value_style),
+                        ])
+                    tbl = Table(data, colWidths=[80, 80, 35, 45, "*"])
+                    tbl.setStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d0e0f0")),
+                        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#aaccdd")),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ])
+                    story.append(tbl)
+                    story.append(Spacer(1, 0.3 * cm))
             queries = DatabaseQuery.objects.filter(resource=resource)
             for q in queries:
                 story.append(Paragraph(f'<b>Query:</b> {escape(q.name)}', label_style))

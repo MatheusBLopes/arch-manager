@@ -12,6 +12,7 @@ from .forms import (
     ApiGatewayPayloadForm,
     DatabaseQueryForm,
     DatabaseTableForm,
+    LambdaDetailsForm,
     ResourceForm,
     ResourceTypeForm,
     TableFieldForm,
@@ -26,6 +27,7 @@ from .models import (
     ApiGatewayPayload,
     DatabaseQuery,
     DatabaseTable,
+    LambdaDetails,
     Resource,
     ResourceType,
     TableField,
@@ -41,7 +43,7 @@ class ResourceListView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Resource.objects.all().select_related("resource_type")
+        qs = Resource.objects.all().select_related("resource_type", "lambda_details")
         search = self.request.GET.get("q", "").strip()
         type_slug = self.request.GET.get("type", "").strip()
         if search:
@@ -77,7 +79,7 @@ class ResourceByTypeListView(ListView):
         )
         return Resource.objects.filter(
             resource_type=self.resource_type,
-        ).select_related("resource_type").order_by("name")
+        ).select_related("resource_type", "lambda_details").order_by("name")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -93,7 +95,9 @@ class ResourceDetailView(DetailView):
     slug_url_kwarg = "slug"
 
     def get_queryset(self):
-        return Resource.objects.select_related("resource_type", "project").prefetch_related(
+        return Resource.objects.select_related(
+            "resource_type", "project", "lambda_details"
+        ).prefetch_related(
             "outgoing_relationships__target_resource",
             "incoming_relationships__source_resource",
         )
@@ -101,34 +105,71 @@ class ResourceDetailView(DetailView):
 
 def resource_create(request):
     """Criação de novo recurso (FBV para redirect correto)."""
+    initial = {}
+    if type_slug := request.GET.get("type"):
+        rt = ResourceType.objects.filter(slug=type_slug, is_active=True).first()
+        if rt:
+            initial["resource_type"] = rt
+
     if request.method == "POST":
         form = ResourceForm(request.POST)
+        lambda_form = LambdaDetailsForm(request.POST)
         if form.is_valid():
             resource = form.save()
+            if resource.is_lambda() and lambda_form.is_valid():
+                lambda_form.instance.resource = resource
+                lambda_form.save()
             messages.success(request, "Recurso criado com sucesso.")
             return redirect("resources:detail", slug=resource.slug)
     else:
-        initial = {}
-        if type_slug := request.GET.get("type"):
-            rt = ResourceType.objects.filter(slug=type_slug, is_active=True).first()
-            if rt:
-                initial["resource_type"] = rt
         form = ResourceForm(initial=initial)
-    return render(request, "resources/resource_form.html", {"form": form})
+        lambda_form = LambdaDetailsForm()
+    lambda_type = ResourceType.objects.filter(slug="lambda", is_active=True).first()
+    return render(
+        request,
+        "resources/resource_form.html",
+        {
+            "form": form,
+            "lambda_form": lambda_form,
+            "resource": None,
+            "lambda_type_pk": lambda_type.pk if lambda_type else None,
+        },
+    )
 
 
 def resource_update(request, slug):
     """Edição de recurso existente."""
     resource = get_object_or_404(Resource, slug=slug)
+    lambda_details = getattr(resource, "lambda_details", None)
+
     if request.method == "POST":
         form = ResourceForm(request.POST, instance=resource)
+        lambda_form = LambdaDetailsForm(
+            request.POST,
+            instance=lambda_details,
+        )
         if form.is_valid():
             form.save()
+            if resource.is_lambda() and lambda_form.is_valid():
+                lambda_form.instance.resource = resource
+                lambda_form.save()
             messages.success(request, "Recurso atualizado com sucesso.")
             return redirect("resources:detail", slug=resource.slug)
     else:
         form = ResourceForm(instance=resource)
-    return render(request, "resources/resource_form.html", {"form": form, "resource": resource})
+        lambda_form = LambdaDetailsForm(instance=lambda_details) if lambda_details else LambdaDetailsForm()
+
+    lambda_type = ResourceType.objects.filter(slug="lambda", is_active=True).first()
+    return render(
+        request,
+        "resources/resource_form.html",
+        {
+            "form": form,
+            "lambda_form": lambda_form,
+            "resource": resource,
+            "lambda_type_pk": lambda_type.pk if lambda_type else None,
+        },
+    )
 
 
 def resource_delete(request, slug):

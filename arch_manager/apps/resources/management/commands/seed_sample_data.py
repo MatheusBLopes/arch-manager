@@ -19,6 +19,7 @@ from arch_manager.apps.resources.models import (
     ApiGatewayPayload,
     DatabaseQuery,
     DatabaseTable,
+    LambdaDetails,
     Resource,
     ResourceType,
     TableField,
@@ -47,6 +48,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             self._create_projects()
             self._create_resources()
+            self._create_lambda_details()
             self._create_documentations()
             self._create_relationships()
             self._create_database_schema()
@@ -188,6 +190,7 @@ class Command(BaseCommand):
         ]
 
         self.resources = {}
+        self._lambda_runtimes = {}
         for slug, rt, proj, short, detailed, runtime, repo, pentest in resources_data:
             r, _ = Resource.objects.get_or_create(
                 slug=slug,
@@ -197,13 +200,41 @@ class Command(BaseCommand):
                     "project": proj,
                     "short_description": short,
                     "detailed_description": detailed,
-                    "runtime_version": runtime,
                     "repository_url": repo,
                     "has_pentest": pentest,
                     "notes": "Recurso de exemplo para demonstração.",
                 },
             )
             self.resources[slug] = r
+            if rt.slug == "lambda":
+                self._lambda_runtimes[slug] = runtime
+
+    def _create_lambda_details(self):
+        """Detalhes específicos para recursos Lambda."""
+        lambda_data = {
+            "process-payment-lambda": {
+                "runtime_version": self._lambda_runtimes.get("process-payment-lambda", "python3.12"),
+                "example_invocation_payload": '{\n  "payment_id": "pay_123",\n  "amount": 99.90,\n  "currency": "BRL",\n  "customer_id": "cus_456"\n}',
+                "mermaid_diagram": "flowchart TD\n  A[Recebe evento] --> B{Valida Stripe}\n  B -->|OK| C[Registra transação]\n  B -->|Erro| D[Publica falha]\n  C --> E[Publica confirmação]",
+            },
+            "send-email-lambda": {
+                "runtime_version": self._lambda_runtimes.get("send-email-lambda", "python3.12"),
+                "example_invocation_payload": '{\n  "to": "user@example.com",\n  "template": "payment_confirmation",\n  "data": {"order_id": "ord_789"}\n}',
+                "mermaid_diagram": "flowchart LR\n  A[SNS Event] --> B[Parse payload]\n  B --> C[SES Send]",
+            },
+            "order-validator": {
+                "runtime_version": self._lambda_runtimes.get("order-validator", "nodejs20.x"),
+                "example_invocation_payload": "",
+                "mermaid_diagram": "",
+            },
+        }
+        for slug, data in lambda_data.items():
+            r = self.resources.get(slug)
+            if r and r.is_lambda():
+                LambdaDetails.objects.update_or_create(
+                    resource=r,
+                    defaults=data,
+                )
 
     def _create_documentations(self):
         """Documentação Markdown para recursos."""

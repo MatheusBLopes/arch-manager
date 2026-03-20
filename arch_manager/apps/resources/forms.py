@@ -13,6 +13,7 @@ from .models import (
     ApiGatewayPayload,
     DatabaseQuery,
     DatabaseTable,
+    LambdaDetails,
     Resource,
     ResourceType,
     TableField,
@@ -46,7 +47,6 @@ class ResourceForm(forms.ModelForm):
             "project",
             "short_description",
             "detailed_description",
-            "runtime_version",
             "repository_url",
             "has_pentest",
             "notes",
@@ -57,12 +57,6 @@ class ResourceForm(forms.ModelForm):
             "project": forms.Select(attrs={"class": "form-select"}),
             "short_description": forms.Textarea(attrs={"rows": 2, "class": "form-control"}),
             "detailed_description": forms.Textarea(attrs={"rows": 4, "class": "form-control"}),
-            "runtime_version": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Ex: python3.12.0, nodejs20.x",
-                }
-            ),
             "repository_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://github.com/..."}),
             "has_pentest": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "notes": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
@@ -80,6 +74,31 @@ class ResourceForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class LambdaDetailsForm(forms.ModelForm):
+    class Meta:
+        model = LambdaDetails
+        fields = ["runtime_version", "example_invocation_payload", "mermaid_diagram"]
+        widgets = {
+            "runtime_version": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ex: python3.12.0, nodejs20.x"}
+            ),
+            "example_invocation_payload": forms.Textarea(
+                attrs={
+                    "rows": 8,
+                    "class": "form-control font-monospace",
+                    "placeholder": '{"key": "value"}',
+                }
+            ),
+            "mermaid_diagram": forms.Textarea(
+                attrs={
+                    "rows": 10,
+                    "class": "form-control font-monospace",
+                    "placeholder": "flowchart TD\n  A --> B",
+                }
+            ),
+        }
 
 
 class ResourceTypeForm(forms.ModelForm):

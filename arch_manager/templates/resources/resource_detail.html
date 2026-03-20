@@ -11,9 +11,11 @@
     {% if resource.project %}
       <a href="{% url 'projects:detail' slug=resource.project.slug %}" class="badge bg-info text-decoration-none">{{ resource.project.name }}</a>
     {% endif %}
-    {% if resource.runtime_version %}
-      <span class="badge bg-secondary">{{ resource.runtime_version }}</span>
+    {% with ld=resource.get_lambda_details %}
+    {% if ld and ld.runtime_version %}
+      <span class="badge bg-secondary">{{ ld.runtime_version }}</span>
     {% endif %}
+    {% endwith %}
     {% if resource.has_pentest %}
       <span class="badge bg-success">Pentest</span>
     {% endif %}
@@ -52,9 +54,11 @@
         {% if resource.detailed_description %}
           <li class="list-group-item"><strong>Descrição detalhada:</strong><br>{{ resource.detailed_description }}</li>
         {% endif %}
-        {% if resource.runtime_version %}
-          <li class="list-group-item"><strong>Runtime:</strong> <code>{{ resource.runtime_version }}</code></li>
+        {% with ld=resource.get_lambda_details %}
+        {% if ld and ld.runtime_version %}
+          <li class="list-group-item"><strong>Runtime:</strong> <code>{{ ld.runtime_version }}</code></li>
         {% endif %}
+        {% endwith %}
         {% if resource.repository_url %}
           <li class="list-group-item"><strong>Repositório:</strong> <a href="{{ resource.repository_url }}" target="_blank" rel="noopener">{{ resource.repository_url|truncatechars:50 }}</a></li>
         {% endif %}
@@ -94,6 +98,35 @@
       </ul>
     </div>
 
+    {% with ld=resource.get_lambda_details %}
+    {% if resource.is_lambda and ld %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="bi bi-cpu"></i> Lambda
+      </div>
+      <ul class="list-group list-group-flush">
+        {% if ld.runtime_version %}
+          <li class="list-group-item"><strong>Runtime:</strong> <code>{{ ld.runtime_version }}</code></li>
+        {% endif %}
+        {% if ld.example_invocation_payload %}
+          <li class="list-group-item">
+            <strong>Payload de exemplo:</strong>
+            <pre class="mt-2 mb-0 p-2 bg-dark rounded"><code>{{ ld.example_invocation_payload }}</code></pre>
+          </li>
+        {% endif %}
+        {% if ld.mermaid_diagram %}
+          <li class="list-group-item">
+            <strong>Diagrama de processo:</strong>
+            <div class="mermaid mt-2">{{ ld.mermaid_diagram }}</div>
+          </li>
+        {% endif %}
+        {% if not ld.runtime_version and not ld.example_invocation_payload and not ld.mermaid_diagram %}
+          <li class="list-group-item text-muted">Edite o recurso para adicionar detalhes da Lambda.</li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+    {% endwith %}
     {% if resource.is_api_gateway %}
     <div class="card mb-4">
       <div class="card-header">API Gateway</div>
@@ -182,4 +215,13 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% with ld=resource.get_lambda_details %}
+{% if ld and ld.mermaid_diagram %}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: 'dark' });</script>
+{% endif %}
+{% endwith %}
 {% endblock %}
