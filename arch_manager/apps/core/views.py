@@ -1,7 +1,10 @@
 from django.db.models import Count
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from arch_manager.apps.resources.models import Resource, ResourceType
+
+from .pdf_export import build_pdf_buffer
 
 
 def dashboard(request):
@@ -18,3 +21,11 @@ def dashboard(request):
         "recent_resources": recent_resources,
     }
     return render(request, "core/dashboard.html", context)
+
+
+def pdf_export(request):
+    """Gera PDF com toda a documentação do sistema."""
+    pdf_bytes = build_pdf_buffer()
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="arch-manager-documentacao.pdf"'
+    return response
