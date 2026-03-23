@@ -69,6 +69,13 @@ class TestRelationshipViews:
         response = client.get(reverse("relationships:create"))
         assert response.status_code == 200
 
+    def test_relationship_create_for_resource_get(self, client, two_resources):
+        r1, _ = two_resources
+        response = client.get(
+            reverse("relationships:create-for-resource", kwargs={"resource_slug": r1.slug})
+        )
+        assert response.status_code == 200
+
     def test_relationship_create_post(self, client, two_resources):
         r1, r2 = two_resources
         response = client.post(
@@ -80,4 +87,47 @@ class TestRelationshipViews:
                 "description": "Fila invoca lambda",
             },
         )
+        assert response.status_code == 302
+
+    def test_relationship_update_get(self, client, two_resources):
+        r1, r2 = two_resources
+        rel = ResourceRelationship.objects.create(
+            source_resource=r1, target_resource=r2, relationship_type="invokes"
+        )
+        response = client.get(reverse("relationships:update", kwargs={"pk": rel.pk}))
+        assert response.status_code == 200
+
+    def test_relationship_update_post(self, client, two_resources):
+        r1, r2 = two_resources
+        rel = ResourceRelationship.objects.create(
+            source_resource=r1, target_resource=r2, relationship_type="invokes"
+        )
+        response = client.post(
+            reverse("relationships:update", kwargs={"pk": rel.pk}),
+            {
+                "source_resource": r1.pk,
+                "target_resource": r2.pk,
+                "relationship_type": "publishes_to",
+                "description": "Atualizado",
+            },
+        )
+        assert response.status_code == 302
+        rel.refresh_from_db()
+        assert rel.relationship_type == "publishes_to"
+
+    def test_relationship_delete_post(self, client, two_resources):
+        r1, r2 = two_resources
+        rel = ResourceRelationship.objects.create(
+            source_resource=r1, target_resource=r2, relationship_type="invokes"
+        )
+        response = client.post(reverse("relationships:delete", kwargs={"pk": rel.pk}))
+        assert response.status_code == 302
+        assert not ResourceRelationship.objects.filter(pk=rel.pk).exists()
+
+    def test_relationship_delete_get_redirects(self, client, two_resources):
+        r1, r2 = two_resources
+        rel = ResourceRelationship.objects.create(
+            source_resource=r1, target_resource=r2, relationship_type="invokes"
+        )
+        response = client.get(reverse("relationships:delete", kwargs={"pk": rel.pk}))
         assert response.status_code == 302
