@@ -469,12 +469,7 @@ def build_pdf_buffer():
     # Capa
     story.append(Spacer(1, 3 * cm))
     story.append(Paragraph("Arch Manager", title_style))
-    story.append(Paragraph("Documentação Completa do Sistema", body_style))
     story.append(Spacer(1, 2 * cm))
-    story.append(Paragraph(
-        "Este documento contém toda a documentação de projetos, recursos e suas relações.",
-        body_style,
-    ))
     story.append(PageBreak())
 
     # Sumário

@@ -88,7 +88,9 @@
                   data-bs-toggle="modal" data-bs-target="#deleteModal"
                   data-delete-url="{% url 'relationships:delete' pk=rel.pk %}"
                   data-delete-title="Remover relacionamento"
-                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name }}</strong> <span class=\"badge bg-info\">{{ rel.get_relationship_type_display }}</span> <strong>{{ rel.target_resource.name }}</strong>?"><i class="bi bi-trash"></i></button>
+                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name|escape }}</strong> <span class='badge bg-info'>{{ rel.get_relationship_type_display|escape }}</span> <strong>{{ rel.target_resource.name|escape }}</strong>?">
+                  <i class="bi bi-trash"></i>
+                </button>
               </div>
             </li>
           {% endif %}
@@ -182,7 +184,9 @@
                   data-bs-toggle="modal" data-bs-target="#deleteModal"
                   data-delete-url="{% url 'relationships:delete' pk=rel.pk %}"
                   data-delete-title="Remover relacionamento"
-                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name }}</strong> <span class=\"badge bg-info\">{{ rel.get_relationship_type_display }}</span> <strong>{{ rel.target_resource.name }}</strong>?"><i class="bi bi-trash"></i></button>
+                  data-delete-message="Deseja remover o relacionamento <strong>{{ rel.source_resource.name|escape }}</strong> <span class='badge bg-info'>{{ rel.get_relationship_type_display|escape }}</span> <strong>{{ rel.target_resource.name|escape }}</strong>?">
+                  <i class="bi bi-trash"></i>
+                </button>
               </div>
             </li>
           {% endif %}
